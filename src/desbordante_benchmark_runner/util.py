@@ -18,19 +18,6 @@ def iowa_fname(rows: int) -> Path:
     return Path(f"iowa{toksyntax(rows)}.csv")
 
 
-def timed_run(test_name: str) -> int:
-    """
-    Returns:
-        milliseconds
-    """
-    proc = subprocess.run(
-        "Desbordante.benchmark", check=True, stdout=subprocess.PIPE, text=True
-    )
-    lines = proc.stdout.splitlines()
-    assert len(lines) == 1
-    return int(lines[0])
-
-
 # Fix absolutely harmful default check=False
 def run(*args: str | os.PathLike, **kwargs: tp.Any) -> None:
     subprocess.run(args, check=True, **kwargs)

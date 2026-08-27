@@ -5,7 +5,7 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
-from .algo import EPacAlgo
+from .algo import ALGO_CLASSES, EPacAlgo
 from .util import capture, run
 
 
@@ -39,6 +39,13 @@ class AlgoMeta(abc.ABC):
             + f"{self.other_options}"
         )
 
+        extra_includes = ""
+        # Somehow it's `field` sometimes
+        if isinstance(self.extra_includes, list) and self.extra_includes:
+            extra_includes = "\n".join(
+                f'#include "{incl}"' for incl in self.extra_includes
+            )
+
         return (
             '#include "core/algorithms/algo_factory.h"\n'
             '#include "core/config/indices/type.h"\n'
@@ -47,8 +54,8 @@ class AlgoMeta(abc.ABC):
             '#include "tests/memory/util.h"\n'
             "\n"
             f'#include "{self.include_algo}"\n'
-            + "".join([f'#include "{incl}"\n' for incl in self.extra_includes])
-            + "\n"
+            f"{extra_includes}"
+            "\n"
             "int main() {\n"
             "   using namespace config::names;\n"
             "   using namespace tests;\n"
@@ -73,7 +80,7 @@ class DomainPACVerifierMeta(AlgoMeta):
     include_algo = (
         "core/algorithms/pac/pac_verifier/domain_pac_verifier/domain_pac_verifier.h"
     )
-    algo_class = "DomainPACVerifier"
+    algo_class = ALGO_CLASSES[EPacAlgo.DOMAIN_PAC]
 
     def __init__(self, domain_ctor: str, domain_include: str | None = None) -> None:
         self.other_options = (
@@ -94,7 +101,7 @@ class DomainPACVerifierMeta(AlgoMeta):
 
 class FDPACVerifierMeta(AlgoMeta):
     include_algo = "core/algorithms/pac/pac_verifier/fd_pac_verifier/fd_pac_verifier.h"
-    algo_class = "FDPACVerifier"
+    algo_class = ALGO_CLASSES[EPacAlgo.FD_PAC]
 
     def _make_indices_options(self, indices: Indices) -> str:
         assert isinstance(indices, tuple)
@@ -109,9 +116,9 @@ class FDPACVerifierMeta(AlgoMeta):
 
 class UCCPACVerifierMeta(AlgoMeta):
     include_algo = (
-        "core/algorithms/pac/pac_verifier/ucc_pac_verifier/uss_pac_verifier.h"
+        "core/algorithms/pac/pac_verifier/ucc_pac_verifier/ucc_pac_verifier.h"
     )
-    algo_class = "UCCPACVerifier"
+    algo_class = ALGO_CLASSES[EPacAlgo.UCC_PAC]
 
     def _make_indices_options(self, indices: Indices) -> str:
         return make_column_indices(indices)
@@ -168,7 +175,7 @@ def _run_memory_bench(
 class DatasetMeta:
     dataset_const: str
     # Some numeric characteristic of dataset (displayed on axis X)
-    num: int | float
+    num: int
 
 
 @dataclass
@@ -180,7 +187,7 @@ class MemoryBenchmarksResultsSingleChara:
 
 @dataclass
 class MemoryBenchmarksResults:
-    axis_x: list[int | float] = field(default_factory=list)
+    axis_x: list[int] = field(default_factory=list)
     vspace_kb: MemoryBenchmarksResultsSingleChara = field(
         default_factory=MemoryBenchmarksResultsSingleChara
     )
@@ -194,12 +201,13 @@ def run_memory_benchmarks(
     datasets: list[DatasetMeta],
     desbordante_root: Path,
     algorithms: list[EPacAlgo],
+    test_count: int,
 ) -> dict[EPacAlgo, MemoryBenchmarksResults]:
     results: dict[EPacAlgo, MemoryBenchmarksResults] = {}
 
     for algo in algorithms:
         algo_result = MemoryBenchmarksResults()
-        for dataset in datasets:
+        for dataset in datasets[:test_count]:
             memory_usage = _run_memory_bench(
                 algo, test_args_dict, dataset.dataset_const, desbordante_root
             )

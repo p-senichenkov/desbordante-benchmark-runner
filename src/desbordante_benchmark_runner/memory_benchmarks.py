@@ -24,13 +24,14 @@ IOWAS_LOW_ARITIES_TEST_ARGS: dict[EPacAlgo, TestArgs] = {
 
 IOWAS_LOW_ARITIES_DATASETS = [
     DatasetMeta(dataset_const=f"kIowa{toksyntax(size)}", num=size)
-    for size in IOWAS_SIZES[:5]
+    for size in IOWAS_SIZES
 ]
 
 
 def run_iowas_low_arities(
     desbordante_root: Path,
     algorithms: list[EPacAlgo],
+    test_count: int,
 ) -> dict[EPacAlgo, MemoryBenchmarksResults]:
     prepare_iowas(desbordante_root)
     return run_memory_benchmarks(
@@ -38,4 +39,5 @@ def run_iowas_low_arities(
         IOWAS_LOW_ARITIES_DATASETS,
         desbordante_root,
         algorithms,
+        test_count,
     )

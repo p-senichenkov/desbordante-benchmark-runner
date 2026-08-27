@@ -6,22 +6,36 @@ import click
 from .algo import EPacAlgo
 from .memory_benchmarks import run_iowas_low_arities
 from .memory_plots import build_memory_plots
+from .timed import run_timed_iowas_low_arities
+from .timed_plots import build_timed_plots
 from .util import check_desbordante_root
 
 
+# NOTE: It is not necessary that each suite supports both memory and timed
 class ESuite(StrEnum):
     IOWAS_LOW_ARITTIES = "iowas-low-arities"
 
 
-SUITE_TO_RUNNER = {
+SUITE_TO_MEMORY_RUNNER = {
     ESuite.IOWAS_LOW_ARITTIES: run_iowas_low_arities,
 }
+
+
+def _xlabel(suite: ESuite) -> str:
+    SUITE_TO_XLABEL = {ESuite.IOWAS_LOW_ARITTIES: "Row number"}
+    return SUITE_TO_XLABEL.get(suite, "")
+
 
 CLICK_PATH = click.Path(path_type=Path)
 OUTPUT_PATH = click.Path(path_type=Path, dir_okay=False, allow_dash=False, exists=False)
 
 
-@click.command()
+@click.group()
+def main():
+    pass
+
+
+@main.command()
 @click.option(
     "-d",
     "--desbordante-root",
@@ -33,18 +47,58 @@ OUTPUT_PATH = click.Path(path_type=Path, dir_okay=False, allow_dash=False, exist
     "-a", "--algorithms", type=EPacAlgo, multiple=True, default=list(EPacAlgo)
 )
 @click.option("-o", "--output", type=OUTPUT_PATH, default=Path("output.pdf"))
+@click.option(
+    "-n", "--test-count", default=5, help="Run only N first benchmarks for each algo"
+)
 # TODO: more options
-def main(
+def memory(
     desbordante_root: Path | None,
     test_suite: ESuite,
     algorithms: list[EPacAlgo],
     output: Path,
+    test_count: int,
 ):
     assert desbordante_root is not None
     check_desbordante_root(desbordante_root)
 
-    results = SUITE_TO_RUNNER[test_suite](desbordante_root, algorithms)
-    build_memory_plots(results, output)
+    results = SUITE_TO_MEMORY_RUNNER[test_suite](
+        desbordante_root, algorithms, test_count
+    )
+    build_memory_plots(results, output, _xlabel(test_suite))
+
+
+SUITE_TO_TIMED_RUNNER = {ESuite.IOWAS_LOW_ARITTIES: run_timed_iowas_low_arities}
+
+
+@main.command()
+@click.option(
+    "-d",
+    "--desbordante-root",
+    type=CLICK_PATH,
+    default=Path.home() / "Desbordante",
+)
+@click.option("-s", "--test-suite", type=ESuite)
+@click.option(
+    "-a", "--algorithms", type=EPacAlgo, multiple=True, default=list(EPacAlgo)
+)
+@click.option("-o", "--output", type=OUTPUT_PATH, default=Path("output.pdf"))
+@click.option(
+    "-n", "--test-count", default=5, help="Run only N first benchmarks for each algo"
+)
+def timed(
+    desbordante_root: Path | None,
+    test_suite: ESuite,
+    algorithms: list[EPacAlgo],
+    output: Path,
+    test_count: int,
+):
+    assert desbordante_root is not None
+    check_desbordante_root(desbordante_root)
+
+    results = SUITE_TO_TIMED_RUNNER[test_suite](
+        desbordante_root, algorithms, test_count
+    )
+    build_timed_plots(results, output, _xlabel(test_suite))
 
 
 if __name__ == "__main__":
