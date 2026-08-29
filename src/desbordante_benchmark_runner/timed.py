@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .algo import ALGO_CLASSES, EPacAlgo
-from .util import IOWAS_SIZES, capture, iowa_fname, prepare_iowas, run
+from .util import IOWAS_SIZES, build_desbordante, capture, iowa_fname, prepare_iowas
 
 
 def _timed_run(test_name: str, desbordante_root: Path) -> int:
@@ -16,10 +16,6 @@ def _timed_run(test_name: str, desbordante_root: Path) -> int:
     ).splitlines()
     assert len(lines) == 1
     return int(lines[0])
-
-
-def _build_benchmarks(desbordante_root: Path) -> None:
-    run(desbordante_root / "build.sh", "--benchmark", cwd=desbordante_root)
 
 
 @dataclass
@@ -43,7 +39,7 @@ def _run_timed_benchmarks(
     algorithms: list[EPacAlgo],
     test_count: int,
 ) -> dict[EPacAlgo, TimedBenchmarksResults]:
-    _build_benchmarks(desbordante_root)
+    build_desbordante(desbordante_root, benchmarks=True, target="Desbordante.benchmark")
 
     results: dict[EPacAlgo, TimedBenchmarksResults] = {}
     for algo in algorithms:

@@ -6,7 +6,7 @@ from pathlib import Path
 from pydantic import BaseModel
 
 from .algo import ALGO_CLASSES, EPacAlgo
-from .util import capture, run
+from .util import capture, run, build_desbordante
 
 
 class PeakMemoryUsage(BaseModel):
@@ -154,19 +154,9 @@ def _run_memory_bench(
     ) as main_file:
         main_file.write(main_text)
 
-    (desbordante_root / "build" / "CMakeCache.txt").unlink(missing_ok=True)
-    run("cmake", "-B", "build", "-S", desbordante_root, cwd=desbordante_root)
-    run(
-        "cmake",
-        "--build",
-        "build",
-        "--target",
-        "Desbordante.memory_bench",
-        cwd=desbordante_root,
+    build_target = build_desbordante(
+        desbordante_root, target="Desbordante.memory_bench"
     )
-
-    build_target = desbordante_root / "build" / "target"
-    assert build_target.is_dir()
     output = capture(build_target / "Desbordante.memory_bench", cwd=build_target)
     return AlgoMemoryUsage.model_validate_json(output)
 

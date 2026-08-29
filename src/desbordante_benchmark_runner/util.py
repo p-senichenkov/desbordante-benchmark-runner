@@ -49,3 +49,35 @@ def prepare_iowas(desbordante_root: Path) -> None:
                     input_data / iowa_fname(1_000_000),
                     stdout=iowa_out,
                 )
+
+
+def build_desbordante(
+    desbordante_root: Path,
+    *,
+    benchmarks: bool = False,
+    force_fetch_datasets: bool = False,
+    target: str = "",
+) -> Path:
+    (desbordante_root / "build" / "CMakeCache.txt").unlink(missing_ok=True)
+
+    cmake_args = ["cmake", "-B", "build", "-S", desbordante_root, "-G", "Ninja"]
+    if benchmarks:
+        cmake_args += ["-D", "DESBORDANTE_BUILD_BENCHMARKS=ON"]
+    input_data = desbordante_root / "build" / "target" / "input_data"
+    fetch_datasets = (
+        force_fetch_datasets
+        or not input_data.exists()
+        or len(list(input_data.iterdir())) == 0
+    )
+    if not fetch_datasets:
+        cmake_args += ["-D", "DESBORDANTE_FETCH_DATASETS=OFF"]
+    run(*cmake_args, cwd=desbordante_root)
+
+    ninja_args = ["cmake", "--build", "build"]
+    if target:
+        ninja_args += ["--target", target]
+    run(*ninja_args, cwd=desbordante_root)
+
+    build_target = desbordante_root / "build" / "target"
+    assert build_target.exists()
+    return build_target
