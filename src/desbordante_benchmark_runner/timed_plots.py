@@ -24,10 +24,7 @@ def build_timed_plots(
         ax = axs[algo_num]
         ax.set_title(algo_name)
 
-        ax.plot(
-            algo_results,
-        )
-        ax.legend()
+        ax.plot(algo_results.keys(), algo_results.values())
         if x_label:
             ax.set_xlabel(x_label)
         ax.set_ylabel("Run time, sec")
