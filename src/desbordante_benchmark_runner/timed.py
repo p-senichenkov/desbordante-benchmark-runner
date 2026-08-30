@@ -56,7 +56,7 @@ def _run_timed_benchmarks(
 
 IOWAS_LOW_ARITIES_METAS = [
     TimedBenchmarkMeta(
-        dataset_name=iowa_fname(size).name,
+        dataset_name=iowa_fname(size).stem,
         name_suffix="low arity",
         num=size,
     )
