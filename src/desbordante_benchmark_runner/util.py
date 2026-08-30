@@ -61,7 +61,15 @@ def build_desbordante(
 ) -> Path:
     (desbordante_root / "build" / "CMakeCache.txt").unlink(missing_ok=True)
 
-    cmake_args = ["cmake", "-B", "build", "-S", desbordante_root, "-G", "Ninja"]
+    cmake_args = [
+        "cmake",
+        "-B",
+        desbordante_root / "build",
+        "-S",
+        desbordante_root,
+        "-G",
+        "Ninja",
+    ]
     if benchmarks:
         cmake_args += ["-D", "DESBORDANTE_BUILD_BENCHMARKS=ON"]
     input_data = desbordante_root / "build" / "target" / "input_data"
@@ -76,7 +84,7 @@ def build_desbordante(
         cmake_args += ["-D", "DESBORDANTE_LOG_LEVEL=CRITICAL"]
     run(*cmake_args, cwd=desbordante_root)
 
-    ninja_args = ["cmake", "--build", "build"]
+    ninja_args = ["cmake", "--build", desbordante_root / "build"]
     if target:
         ninja_args += ["--target", target]
     run(*ninja_args, cwd=desbordante_root)
