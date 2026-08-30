@@ -57,6 +57,7 @@ def build_desbordante(
     benchmarks: bool = False,
     force_fetch_datasets: bool = False,
     target: str = "",
+    disable_logging: bool = True,
 ) -> Path:
     (desbordante_root / "build" / "CMakeCache.txt").unlink(missing_ok=True)
 
@@ -71,6 +72,8 @@ def build_desbordante(
     )
     if not fetch_datasets:
         cmake_args += ["-D", "DESBORDANTE_FETCH_DATASETS=OFF"]
+    if disable_logging:
+        cmake_args += ["-D", "DESBORDANTE_LOG_LEVEL=CRITICAL"]
     run(*cmake_args, cwd=desbordante_root)
 
     ninja_args = ["cmake", "--build", "build"]

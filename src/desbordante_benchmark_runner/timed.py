@@ -12,7 +12,7 @@ def _timed_run(test_name: str, desbordante_root: Path) -> int:
     """
     build_target = desbordante_root / "build" / "target"
     lines = capture(
-        "Desbordante.benchmark", "--name", test_name, cwd=build_target
+        build_target / "Desbordante.benchmark", "--name", test_name, cwd=build_target
     ).splitlines()
     assert len(lines) == 1
     return int(lines[0])
