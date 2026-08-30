@@ -38,6 +38,7 @@ def _run_timed_benchmarks(
     desbordante_root: Path,
     algorithms: list[EPacAlgo],
     test_count: int,
+    repeats: int,
 ) -> dict[EPacAlgo, TimedBenchmarksResults]:
     build_desbordante(desbordante_root, benchmarks=True, target="Desbordante.benchmark")
 
@@ -48,8 +49,10 @@ def _run_timed_benchmarks(
             bench_name = _make_benchmark_name(
                 algo, bench.dataset_name, bench.name_suffix
             )
-            time_ms = _timed_run(bench_name, desbordante_root)
-            algo_results[bench.num] = time_ms
+            times_ms = []
+            for _ in range(repeats):
+                times_ms.append(_timed_run(bench_name, desbordante_root))
+            algo_results[bench.num] = sum(times_ms) // repeats
         results[algo] = algo_results
     return results
 
@@ -65,9 +68,12 @@ IOWAS_LOW_ARITIES_METAS = [
 
 
 def run_timed_iowas_low_arities(
-    desbordante_root: Path, algorithms: list[EPacAlgo], test_count: int
+    desbordante_root: Path,
+    algorithms: list[EPacAlgo],
+    test_count: int,
+    repeats: int,
 ) -> dict[EPacAlgo, TimedBenchmarksResults]:
     prepare_iowas(desbordante_root)
     return _run_timed_benchmarks(
-        IOWAS_LOW_ARITIES_METAS, desbordante_root, algorithms, test_count
+        IOWAS_LOW_ARITIES_METAS, desbordante_root, algorithms, test_count, repeats
     )

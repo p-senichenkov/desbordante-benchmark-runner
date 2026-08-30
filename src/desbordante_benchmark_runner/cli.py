@@ -85,18 +85,23 @@ SUITE_TO_TIMED_RUNNER = {ESuite.IOWAS_LOW_ARITTIES: run_timed_iowas_low_arities}
 @click.option(
     "-n", "--test-count", default=5, help="Run only N first benchmarks for each algo"
 )
+@click.option("-r", "--repeats", default=5, help="Repeat each benchmark N times")
 def timed(
     desbordante_root: Path | None,
     test_suite: ESuite,
     algorithms: list[EPacAlgo],
     output: Path,
     test_count: int,
+    repeats: int,
 ):
     assert desbordante_root is not None
     check_desbordante_root(desbordante_root)
 
     results = SUITE_TO_TIMED_RUNNER[test_suite](
-        desbordante_root, algorithms, test_count
+        desbordante_root,
+        algorithms,
+        test_count,
+        repeats,
     )
     build_timed_plots(results, output, _xlabel(test_suite))
 
