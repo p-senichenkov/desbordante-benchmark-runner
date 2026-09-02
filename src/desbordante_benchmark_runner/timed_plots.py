@@ -30,6 +30,8 @@ def build_timed_plots(
         ax.set_ylabel("Run time, sec")
     fig.tight_layout()
     if output:
+        parent = output.parent
+        parent.mkdir(parents=True, exist_ok=True)
         fig.savefig(output)
     else:
         fig.show()

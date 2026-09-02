@@ -143,6 +143,8 @@ def write_timed(
         repeats,
     )
     flat_results = {algo.value: res for algo, res in results.items()}
+
+    output.parent.mkdir(exist_ok=True, parents=True)
     with open(output, "w") as f:
         json.dump(flat_results, f)
 
