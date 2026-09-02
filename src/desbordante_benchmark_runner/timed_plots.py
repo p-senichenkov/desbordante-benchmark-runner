@@ -11,7 +11,7 @@ def _to_s(ms: list[int]) -> list[float]:
 
 
 def build_timed_plots(
-    results: dict[EPacAlgo, TimedBenchmarksResults], output: Path, x_label: str = ""
+    results: dict[EPacAlgo, TimedBenchmarksResults], output: Path | None, x_label: str = ""
 ) -> None:
     fig, axs = plt.subplots(len(results), 1, sharex="col")
     if len(results) == 1:
@@ -29,4 +29,7 @@ def build_timed_plots(
             ax.set_xlabel(x_label)
         ax.set_ylabel("Run time, sec")
     fig.tight_layout()
-    fig.savefig(output)
+    if output:
+        fig.savefig(output)
+    else:
+        fig.show()
