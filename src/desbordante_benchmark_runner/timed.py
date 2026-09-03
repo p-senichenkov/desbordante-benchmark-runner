@@ -51,8 +51,10 @@ def _run_timed_benchmarks(
             )
             times_ms = []
             for i in range(repeats):
-                print(f"Running {bench_name} ({i} / {repeats})...")
-                times_ms.append(_timed_run(bench_name, desbordante_root))
+                print(f"Running {bench_name} ({i} / {repeats})... ", end='', flush=True)
+                result = _timed_run(bench_name, desbordante_root)
+                print(f"{result}ms")
+                times_ms.append(result)
             algo_results[bench.num] = sum(times_ms) // repeats
         results[algo] = algo_results
     return results
