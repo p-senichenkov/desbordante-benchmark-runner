@@ -35,3 +35,4 @@ def build_timed_plots(
         fig.savefig(output)
     else:
         fig.show()
+        input()
