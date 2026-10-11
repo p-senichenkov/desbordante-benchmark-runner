@@ -7,6 +7,7 @@ from pydantic import BaseModel
 
 from .algo import ALGO_CLASSES, EPacAlgo
 from .util import capture, run, build_desbordante
+from .statistics import AxisMeta, Stats, process_results
 
 
 class PeakMemoryUsage(BaseModel):
@@ -170,6 +171,7 @@ class DatasetMeta:
 
 @dataclass
 class MemoryBenchmarksResultsSingleChara:
+    # Currently ignored. TODO: remove
     before: list[int] = field(default_factory=list)
     after_load: list[int] = field(default_factory=list)
     after_execute: list[int] = field(default_factory=list)
@@ -190,26 +192,47 @@ def run_memory_benchmarks(
     test_args_dict: dict[EPacAlgo, TestArgs],
     datasets: list[DatasetMeta],
     desbordante_root: Path,
-    algorithms: list[EPacAlgo],
+    algorithm: EPacAlgo,
     test_count: int,
-) -> dict[EPacAlgo, MemoryBenchmarksResults]:
-    results: dict[EPacAlgo, MemoryBenchmarksResults] = {}
+) -> MemoryBenchmarksResults:
+    algo_result = MemoryBenchmarksResults()
+    for dataset in datasets[:test_count]:
+        memory_usage = _run_memory_bench(
+            algorithm, test_args_dict, dataset.dataset_const, desbordante_root
+        )
+        algo_result.axis_x.append(dataset.num)
+        vspace = algo_result.vspace_kb
+        vspace.before.append(memory_usage.before.vspace_kb)
+        vspace.after_load.append(memory_usage.after_load.vspace_kb)
+        vspace.after_execute.append(memory_usage.after_execute.vspace_kb)
+        rss = algo_result.rss_kb
+        rss.before.append(memory_usage.before.rss_kb)
+        rss.after_load.append(memory_usage.after_load.rss_kb)
+        rss.after_execute.append(memory_usage.after_execute.rss_kb)
+    return algo_result
 
-    for algo in algorithms:
-        algo_result = MemoryBenchmarksResults()
-        for dataset in datasets[:test_count]:
-            memory_usage = _run_memory_bench(
-                algo, test_args_dict, dataset.dataset_const, desbordante_root
+
+VSPACE_AFTER_LOAD_Y_META = AxisMeta(name="VSpace after load data", unit="Kb")
+VSPACE_AFTER_EXECUTE_Y_META = AxisMeta(name="VSpace after execute", unit="Kb")
+RSS_AFTER_LOAD_Y_META = AxisMeta(name="RSS after load data", unit="Kb")
+RSS_AFTER_EXECUTE_Y_META = AxisMeta(name="RSS after execute", unit="Kb")
+
+
+def process_memory_benchmark_results(results: MemoryBenchmarksResults, algorithm: EPacAlgo, benchmark_name: str, dataset_size_unit: str) -> list[Stats]:
+    def _make_values(ys: list[int]) -> dict[float, float]:
+        assert len(ys) == len(results.axis_x)
+        return {x: y for x, y in zip(results.axis_x, ys)}
+
+    x_meta = AxisMeta(name="Dataset size", unit=dataset_size_unit)
+
+    return process_results(
+                {
+                    VSPACE_AFTER_LOAD_Y_META: _make_values(results.vspace_kb.after_load),
+                    VSPACE_AFTER_EXECUTE_Y_META: _make_values(results.vspace_kb.after_execute),
+                    RSS_AFTER_LOAD_Y_META: _make_values(results.rss_kb.after_load),
+                    RSS_AFTER_EXECUTE_Y_META: _make_values(results.rss_kb.after_execute),
+                },
+                algorithm,
+                x_meta,
+                benchmark_name,
             )
-            algo_result.axis_x.append(dataset.num)
-            vspace = algo_result.vspace_kb
-            vspace.before.append(memory_usage.before.vspace_kb)
-            vspace.after_load.append(memory_usage.after_load.vspace_kb)
-            vspace.after_execute.append(memory_usage.after_execute.vspace_kb)
-            rss = algo_result.rss_kb
-            rss.before.append(memory_usage.before.rss_kb)
-            rss.after_load.append(memory_usage.after_load.rss_kb)
-            rss.after_execute.append(memory_usage.after_execute.rss_kb)
-        results[algo] = algo_result
-
-    return results
