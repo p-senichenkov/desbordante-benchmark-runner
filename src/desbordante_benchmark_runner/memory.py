@@ -212,27 +212,41 @@ def run_memory_benchmarks(
     return algo_result
 
 
-VSPACE_AFTER_LOAD_Y_META = AxisMeta(name="VSpace after load data", unit="Kb")
-VSPACE_AFTER_EXECUTE_Y_META = AxisMeta(name="VSpace after execute", unit="Kb")
-RSS_AFTER_LOAD_Y_META = AxisMeta(name="RSS after load data", unit="Kb")
-RSS_AFTER_EXECUTE_Y_META = AxisMeta(name="RSS after execute", unit="Kb")
+VSPACE_Y_META = AxisMeta(name="Peak virtual space", unit="KiB")
+RSS_Y_META = AxisMeta(name="Peak resident space", unit="KiB")
 
 
-def process_memory_benchmark_results(results: MemoryBenchmarksResults, algorithm: EPacAlgo, benchmark_name: str, dataset_size_unit: str) -> list[Stats]:
+def process_memory_benchmark_results(
+    results: MemoryBenchmarksResults,
+    algorithm: EPacAlgo,
+    benchmark_name: str,
+    dataset_size_unit: str,
+) -> list[Stats]:
     def _make_values(ys: list[int]) -> dict[float, float]:
         assert len(ys) == len(results.axis_x)
         return {x: y for x, y in zip(results.axis_x, ys)}
 
     x_meta = AxisMeta(name="Dataset size", unit=dataset_size_unit)
 
-    return process_results(
-                {
-                    VSPACE_AFTER_LOAD_Y_META: _make_values(results.vspace_kb.after_load),
-                    VSPACE_AFTER_EXECUTE_Y_META: _make_values(results.vspace_kb.after_execute),
-                    RSS_AFTER_LOAD_Y_META: _make_values(results.rss_kb.after_load),
-                    RSS_AFTER_EXECUTE_Y_META: _make_values(results.rss_kb.after_execute),
-                },
-                algorithm,
-                x_meta,
-                benchmark_name,
-            )
+    return [
+        process_results(
+            {
+                "After load data": _make_values(results.vspace_kb.after_load),
+                "After execute": _make_values(results.vspace_kb.after_execute),
+            },
+            algorithm,
+            x_meta,
+            VSPACE_Y_META,
+            benchmark_name,
+        ),
+        process_results(
+            {
+                "After load data": _make_values(results.rss_kb.after_load),
+                "After execute": _make_values(results.rss_kb.after_execute),
+            },
+            algorithm,
+            x_meta,
+            RSS_Y_META,
+            benchmark_name,
+        ),
+    ]

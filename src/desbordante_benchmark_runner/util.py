@@ -4,6 +4,11 @@ import typing as tp
 from pathlib import Path
 
 IOWAS_SIZES = [sz * 1000 for sz in [5, 10, 20, 50, 100, 200, 450, 550, 650]]
+REQUIRED_DATASET_ARCHIVES = (
+    "datasets.zip",
+    "highway-neighbors.zip",
+    "performance-tests.zip",
+)
 
 
 def toksyntax(num: int) -> str:
@@ -73,10 +78,10 @@ def build_desbordante(
     if benchmarks:
         cmake_args += ["-D", "DESBORDANTE_BUILD_BENCHMARKS=ON"]
     input_data = desbordante_root / "build" / "target" / "input_data"
-    fetch_datasets = (
-        force_fetch_datasets
-        or not input_data.exists()
-        or len(list(input_data.iterdir())) == 0
+    datasets_dir = desbordante_root / "datasets"
+    fetch_datasets = force_fetch_datasets or any(
+        not (datasets_dir / archive).is_file()
+        for archive in REQUIRED_DATASET_ARCHIVES
     )
     if not fetch_datasets:
         cmake_args += ["-D", "DESBORDANTE_FETCH_DATASETS=OFF"]
@@ -84,7 +89,7 @@ def build_desbordante(
         cmake_args += ["-D", "DESBORDANTE_LOG_LEVEL=CRITICAL"]
     run(*cmake_args, cwd=desbordante_root)
 
-    ninja_args = ["cmake", "--build", desbordante_root / "build"]
+    ninja_args = ["cmake", "--build", desbordante_root / "build", "--parallel", "8"]
     if target:
         ninja_args += ["--target", target]
     run(*ninja_args, cwd=desbordante_root)

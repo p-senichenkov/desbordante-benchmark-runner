@@ -30,14 +30,14 @@ IOWAS_LOW_ARITIES_DATASETS = [
 
 def run_iowas_low_arities(
     desbordante_root: Path,
-    algorithms: list[EPacAlgo],
+    algorithm: EPacAlgo,
     test_count: int,
-) -> dict[EPacAlgo, MemoryBenchmarksResults]:
+) -> MemoryBenchmarksResults:
     prepare_iowas(desbordante_root)
     return run_memory_benchmarks(
         IOWAS_LOW_ARITIES_TEST_ARGS,
         IOWAS_LOW_ARITIES_DATASETS,
         desbordante_root,
-        algorithms,
+        algorithm,
         test_count,
     )

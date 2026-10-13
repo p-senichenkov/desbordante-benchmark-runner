@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .algo import ALGO_CLASSES, EPacAlgo
+from .statistics import AxisMeta, Stats, process_results
 from .util import IOWAS_SIZES, build_desbordante, capture, iowa_fname, prepare_iowas
 
 
@@ -36,27 +37,24 @@ def _make_benchmark_name(algo: EPacAlgo, dataset_name: str, name_suffix: str) ->
 def _run_timed_benchmarks(
     benchmarks: list[TimedBenchmarkMeta],
     desbordante_root: Path,
-    algorithms: list[EPacAlgo],
+    algorithm: EPacAlgo,
     test_count: int,
     repeats: int,
-) -> dict[EPacAlgo, TimedBenchmarksResults]:
+) -> TimedBenchmarksResults:
     build_desbordante(desbordante_root, benchmarks=True, target="Desbordante.benchmark")
 
-    results: dict[EPacAlgo, TimedBenchmarksResults] = {}
-    for algo in algorithms:
-        algo_results: dict[int, int] = {}
-        for bench in benchmarks[:test_count]:
-            bench_name = _make_benchmark_name(
-                algo, bench.dataset_name, bench.name_suffix
-            )
-            times_ms = []
-            for i in range(repeats):
-                print(f"Running {bench_name} ({i} / {repeats})... ", end='', flush=True)
-                result = _timed_run(bench_name, desbordante_root)
-                print(f"{result}ms")
-                times_ms.append(result)
-            algo_results[bench.num] = sum(times_ms) // repeats
-        results[algo] = algo_results
+    results: TimedBenchmarksResults = {}
+    for bench in benchmarks[:test_count]:
+        bench_name = _make_benchmark_name(
+            algorithm, bench.dataset_name, bench.name_suffix
+        )
+        times_ms = []
+        for i in range(repeats):
+            print(f"Running {bench_name} ({i + 1} / {repeats})... ", end="", flush=True)
+            result = _timed_run(bench_name, desbordante_root)
+            print(f"{result}ms")
+            times_ms.append(result)
+        results[bench.num] = sum(times_ms) // repeats
     return results
 
 
@@ -72,11 +70,28 @@ IOWAS_LOW_ARITIES_METAS = [
 
 def run_timed_iowas_low_arities(
     desbordante_root: Path,
-    algorithms: list[EPacAlgo],
+    algorithm: EPacAlgo,
     test_count: int,
     repeats: int,
-) -> dict[EPacAlgo, TimedBenchmarksResults]:
+) -> TimedBenchmarksResults:
     prepare_iowas(desbordante_root)
     return _run_timed_benchmarks(
-        IOWAS_LOW_ARITIES_METAS, desbordante_root, algorithms, test_count, repeats
+        IOWAS_LOW_ARITIES_METAS, desbordante_root, algorithm, test_count, repeats
     )
+
+
+def process_timed_benchmark_results(
+    results: TimedBenchmarksResults,
+    algorithm: EPacAlgo,
+    benchmark_name: str,
+    dataset_size_unit: str,
+) -> list[Stats]:
+    return [
+        process_results(
+            {"Run time": results},
+            algorithm,
+            AxisMeta(name="Dataset size", unit=dataset_size_unit),
+            AxisMeta(name="Run time", unit="ms"),
+            benchmark_name,
+        )
+    ]
