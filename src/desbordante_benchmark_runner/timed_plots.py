@@ -3,14 +3,14 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 from .algo import ALGO_NAMES
-from .statistics import Stats
+from .statistics import PlotStatstats
 
 
 def _axis_label(name: str, unit: str) -> str:
     return f"{name}, {unit}" if unit else name
 
 
-def build_plots(results: list[Stats], output: Path | None) -> None:
+def build_plots(results: list[PlotStatstats], output: Path | None) -> None:
     if not results:
         raise ValueError("The report does not contain any statistics")
 

@@ -1,24 +1,33 @@
-from __future__ import annotations
-
 import typing as tp
 from dataclasses import asdict, dataclass
 import json
 
 from scipy import stats
 import numpy
+import math
 
 from .algo import EPacAlgo
 
 
 @dataclass(frozen=True)
-class StatsValues:
-    raw_results: dict[float, float]
+class PointValues:
+    """Values for a single point on X axis"""
+
+    raw_results: list[float]
     normaltest_p_value: float
     shapiro_p_value: float
     mean: float
     std: float
     conf_int_half: float
     dropped_by_iqr: tp.Literal[False] | float
+
+
+# Values for a single line
+type LineValues = dict[int, PointValues]
+
+
+# All lines displayed on a single plot
+type Lines = dict[str, LineValues]
 
 
 @dataclass(frozen=True)
@@ -48,100 +57,87 @@ class StatsMeta:
 
 
 @dataclass(frozen=True)
-class Stats:
+class PlotStats:
+    """Everything that is displayed on a single plot"""
+
     meta: StatsMeta
-    values: dict[str, StatsValues]
+    values: Lines
 
     def _to_dict(self) -> dict[str, tp.Any]:
         return {
                 "meta": self.meta.to_dict(),
-                "values": {key: asdict(value) for key, value in self.values.items()},
+                "values": {key: {str(x): asdict(point_values) for x, point_values in value.items()} for key, value in self.values.items()},
                 }
 
     @staticmethod
-    def _from_dict(dct: dict[str, tp.Any]) -> "Stats":
-        # JSON object keys are strings.  Keep the in-memory representation useful
-        # for matplotlib and preserve the numeric X axis on a load/dump round trip.
+    def _from_dict(dct: dict[str, tp.Any]) -> "PlotStats":
+        def _line_values_from_dict(dct: dict[str, tp.Any]) -> LineValues:
+            return {int(x): PointValues(**y_values) for x, y_values in dct.items()}
+
         values = {
-            name: StatsValues(
-                **{
-                    **raw_values,
-                    "raw_results": {
-                        float(x): float(y)
-                        for x, y in raw_values["raw_results"].items()
-                    },
-                }
-            )
-            for name, raw_values in dct["values"].items()
+            name: _line_values_from_dict(line_values)
+            for name, line_values in dct["values"].items()
         }
-        return Stats(
+        return PlotStats(
                 meta=StatsMeta.from_dict(dct["meta"]),
                 values=values,
                 )
 
     @staticmethod
-    def dump(stats: list[Stats]) -> str:
+    def dump(stats: list[PlotStats]) -> str:
         lst = [stat._to_dict() for stat in stats]
         return json.dumps(lst, indent=2)
 
     @staticmethod
-    def load(st: str) -> list["Stats"]:
+    def load(st: str) -> list["PlotStats"]:
         lst = json.loads(st)
         assert isinstance(lst, list)
-        return [Stats._from_dict(stat) for stat in lst]
+        return [PlotStats._from_dict(stat) for stat in lst]
 
 
-def _process_results(name: str, results: dict[float, float]) -> StatsValues:
-    if not results:
-        raise ValueError(f"No results for {name}")
+def _process_results(name: str, results: list[float]) -> PointValues:
+    assert len(results) >= 3
 
-    values = list(map(float, results.values()))
-    # normaltest requires at least eight observations and Shapiro at least three.
-    # A small benchmark suite is still a valid report; use NaN for inapplicable
-    # tests instead of making the complete benchmark fail.
-    normaltest_p_value = (
-        float(stats.normaltest(values).pvalue) if len(values) >= 8 else float("nan")
-    )
-    shapiro_p_value = (
-        float(stats.shapiro(values).pvalue) if len(values) >= 3 else float("nan")
-    )
+    normaltest_p_value = 0.0
+    shapiro_p_value = 0.0
+
+    def _normaltest(results: list[float]) -> bool:
+        nonlocal normaltest_p_value, shapiro_p_value
+
+        normaltest_p_value = float(stats.normaltest(results).pvalue) if len(results) >= 8 else math.nan
+        shapiro_p_value = float(stats.shapiro(results).pvalue)
+
+        return normaltest_p_value >= 0.05 and (shapiro_p_value is math.nan or shapiro_p_value >= 0.05)
+
+
+
     dropped_by_iqr = False
-    if normaltest_p_value < 0.05 and shapiro_p_value < 0.05 and len(values) >= 4:
+    if not _normaltest(results) and len(results) >= 4:
         print(f"WARNING: None of normal tests passed for {name}")
         print("Trying to drop outlier")
         # Use interquantile range to determine if outlier can be dropped
-        values = sorted(values)
-        q25 = numpy.percentile(values, 25)
-        q75 = numpy.percentile(values, 75)
+        results.sort()
+        q25 = numpy.percentile(results, 25)
+        q75 = numpy.percentile(results, 75)
         iqr = q75 - q25
         lower = q25 - 1.5 * iqr
         upper = q75 + 1.5 * iqr
-        if values[-1] > upper:
-            dropped_by_iqr = values[-1]
-            del values[-1]
-        elif values[0] < lower:
-            dropped_by_iqr = values[0]
-            del values[0]
-        normaltest_p_value = (
-            float(stats.normaltest(values).pvalue)
-            if len(values) >= 8
-            else float("nan")
-        )
-        shapiro_p_value = (
-            float(stats.shapiro(values).pvalue)
-            if len(values) >= 3
-            else float("nan")
-        )
-        if normaltest_p_value < 0.05 and shapiro_p_value < 0.05:
+        if results[-1] > upper:
+            dropped_by_iqr = results[-1]
+            del results[-1]
+        elif results[0] < lower:
+            dropped_by_iqr = results[0]
+            del results[0]
+        if _normaltest(results):
             print("!!! Still don't pass !!!")
-    mean = float(numpy.mean(values))
-    std = float(numpy.std(values, ddof=1)) if len(values) > 1 else 0.0
+    mean = float(numpy.mean(results))
+    std = float(numpy.std(results, ddof=1)) if len(results) > 1 else 0.0
     conf_int_half = (
-        float(stats.t.ppf(0.975, df=len(values) - 1) * stats.sem(values))
-        if len(values) > 1
+        float(stats.t.ppf(0.975, df=len(results) - 1) * stats.sem(results))
+        if len(results) > 1
         else 0.0
     )
-    return StatsValues(
+    return PointValues(
             raw_results=results,
             normaltest_p_value=normaltest_p_value,
             shapiro_p_value=shapiro_p_value,
@@ -154,13 +150,13 @@ def _process_results(name: str, results: dict[float, float]) -> StatsValues:
 
 # Process all lines of a single plot.
 def process_results(
-    results: dict[str, dict[float, float]],
+    results: dict[str, dict[int, list[float]]],
     algo: EPacAlgo,
     axis_x: AxisMeta,
     axis_y: AxisMeta,
     benchmark_name: str,
-) -> Stats:
-    return Stats(
+) -> PlotStats:
+    return PlotStats(
         meta=StatsMeta(
             algo=algo,
             benchmark_name=benchmark_name,
@@ -168,9 +164,9 @@ def process_results(
             axis_y=axis_y,
         ),
         values={
-            line_name: _process_results(
-                f"{algo!s}, {benchmark_name}, {line_name}", line_results
-            )
+            line_name: {x: _process_results(
+                f"{algo!s}, {benchmark_name}, {line_name}", y_values
+            ) for x, y_values in line_results.items()}
             for line_name, line_results in results.items()
         },
     )

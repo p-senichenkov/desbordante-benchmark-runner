@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from .algo import ALGO_CLASSES, EPacAlgo
 from .util import capture, run, build_desbordante
-from .statistics import AxisMeta, Stats, process_results
+from .statistics import AxisMeta, PlotStatstats, process_results
 
 
 class PeakMemoryUsage(BaseModel):
@@ -221,7 +221,7 @@ def process_memory_benchmark_results(
     algorithm: EPacAlgo,
     benchmark_name: str,
     dataset_size_unit: str,
-) -> list[Stats]:
+) -> list[PlotStatstats]:
     def _make_values(ys: list[int]) -> dict[float, float]:
         assert len(ys) == len(results.axis_x)
         return {x: y for x, y in zip(results.axis_x, ys)}

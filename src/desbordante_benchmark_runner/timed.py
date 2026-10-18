@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .algo import ALGO_CLASSES, EPacAlgo
-from .statistics import AxisMeta, Stats, process_results
+from .statistics import AxisMeta, PlotStatstats, process_results
 from .util import IOWAS_SIZES, build_desbordante, capture, iowa_fname, prepare_iowas
 
 
@@ -85,7 +85,7 @@ def process_timed_benchmark_results(
     algorithm: EPacAlgo,
     benchmark_name: str,
     dataset_size_unit: str,
-) -> list[Stats]:
+) -> list[PlotStatstats]:
     return [
         process_results(
             {"Run time": results},

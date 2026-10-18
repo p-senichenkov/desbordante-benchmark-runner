@@ -6,7 +6,7 @@ import click
 from .algo import EPacAlgo
 from .memory import process_memory_benchmark_results
 from .memory_benchmarks import run_iowas_low_arities as run_memory_iowas_low_arities
-from .statistics import Stats
+from .statistics import PlotStatstats
 from .timed import process_timed_benchmark_results, run_timed_iowas_low_arities
 from .timed_plots import build_plots
 from .util import check_desbordante_root
@@ -30,9 +30,9 @@ def main() -> None:
     """Benchmark Desbordante and build plots from benchmark reports."""
 
 
-def _write_report(output: Path, stats: list[Stats]) -> None:
+def _write_report(output: Path, stats: list[PlotStatstats]) -> None:
     output.parent.mkdir(exist_ok=True, parents=True)
-    output.write_text(Stats.dump(stats), encoding="utf-8")
+    output.write_text(PlotStatstats.dump(stats), encoding="utf-8")
 
 
 @main.command()
@@ -41,7 +41,8 @@ def _write_report(output: Path, stats: list[Stats]) -> None:
 @click.option("-a", "--algorithm", type=EPacAlgo, required=True)
 @click.option("-o", "--output", type=OUTPUT_PATH, default=Path("memory-report.json"), show_default=True)
 @click.option("-n", "--test-count", type=click.IntRange(min=1), default=5, show_default=True)
-def memory(desbordante_root: Path, test_suite: ESuite, algorithm: EPacAlgo, output: Path, test_count: int) -> None:
+@click.option("-r", "--repeats", type=click.IntRange(min=3), default=8, show_default=True)
+def memory(desbordante_root: Path, test_suite: ESuite, algorithm: EPacAlgo, output: Path, test_count: int, repeats: int) -> None:
     """Run a memory benchmark and write a JSON statistics report."""
     check_desbordante_root(desbordante_root)
     results = SUITE_TO_MEMORY_RUNNER[test_suite](desbordante_root, algorithm, test_count)
@@ -54,7 +55,7 @@ def memory(desbordante_root: Path, test_suite: ESuite, algorithm: EPacAlgo, outp
 @click.option("-a", "--algorithm", type=EPacAlgo, required=True)
 @click.option("-o", "--output", type=OUTPUT_PATH, default=Path("timed-report.json"), show_default=True)
 @click.option("-n", "--test-count", type=click.IntRange(min=1), default=5, show_default=True)
-@click.option("-r", "--repeats", type=click.IntRange(min=1), default=5, show_default=True)
+@click.option("-r", "--repeats", type=click.IntRange(min=3), default=8, show_default=True)
 def timed(desbordante_root: Path, test_suite: ESuite, algorithm: EPacAlgo, output: Path, test_count: int, repeats: int) -> None:
     """Run a timing benchmark and write a JSON statistics report."""
     check_desbordante_root(desbordante_root)
@@ -67,7 +68,7 @@ def timed(desbordante_root: Path, test_suite: ESuite, algorithm: EPacAlgo, outpu
 @click.option("-o", "--output", type=OUTPUT_PATH)
 def plot(input: Path, output: Path | None) -> None:
     """Build matplotlib plots from a report produced by timed or memory."""
-    build_plots(Stats.load(input.read_text(encoding="utf-8")), output)
+    build_plots(PlotStatstats.load(input.read_text(encoding="utf-8")), output)
 
 
 if __name__ == "__main__":
