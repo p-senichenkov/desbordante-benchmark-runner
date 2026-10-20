@@ -6,10 +6,10 @@ import click
 from .algo import EPacAlgo
 from .memory import process_memory_benchmark_results
 from .memory_benchmarks import run_iowas_low_arities as run_memory_iowas_low_arities
-from .statistics import PlotStatstats
+from .statistics import PlotStats
 from .timed import process_timed_benchmark_results, run_timed_iowas_low_arities
-from .timed_plots import build_plots
 from .util import check_desbordante_root
+from .plots import build_plots
 
 
 class ESuite(StrEnum):
@@ -30,9 +30,9 @@ def main() -> None:
     """Benchmark Desbordante and build plots from benchmark reports."""
 
 
-def _write_report(output: Path, stats: list[PlotStatstats]) -> None:
+def _write_report(output: Path, stats: list[PlotStats]) -> None:
     output.parent.mkdir(exist_ok=True, parents=True)
-    output.write_text(PlotStatstats.dump(stats), encoding="utf-8")
+    output.write_text(PlotStats.dump(stats), encoding="utf-8")
 
 
 @main.command()
@@ -45,7 +45,7 @@ def _write_report(output: Path, stats: list[PlotStatstats]) -> None:
 def memory(desbordante_root: Path, test_suite: ESuite, algorithm: EPacAlgo, output: Path, test_count: int, repeats: int) -> None:
     """Run a memory benchmark and write a JSON statistics report."""
     check_desbordante_root(desbordante_root)
-    results = SUITE_TO_MEMORY_RUNNER[test_suite](desbordante_root, algorithm, test_count)
+    results = SUITE_TO_MEMORY_RUNNER[test_suite](desbordante_root, algorithm, test_count, repeats)
     _write_report(output, process_memory_benchmark_results(results, algorithm, test_suite.value, DATASET_SIZE_UNIT))
 
 
@@ -68,7 +68,8 @@ def timed(desbordante_root: Path, test_suite: ESuite, algorithm: EPacAlgo, outpu
 @click.option("-o", "--output", type=OUTPUT_PATH)
 def plot(input: Path, output: Path | None) -> None:
     """Build matplotlib plots from a report produced by timed or memory."""
-    build_plots(PlotStatstats.load(input.read_text(encoding="utf-8")), output)
+
+    build_plots(PlotStats.load(input.read_text(encoding="utf-8")), output)
 
 
 if __name__ == "__main__":

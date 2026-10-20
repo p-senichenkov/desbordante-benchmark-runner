@@ -84,7 +84,7 @@ class PlotStats:
                 )
 
     @staticmethod
-    def dump(stats: list[PlotStats]) -> str:
+    def dump(stats: list["PlotStats"]) -> str:
         lst = [stat._to_dict() for stat in stats]
         return json.dumps(lst, indent=2)
 
@@ -103,6 +103,10 @@ def _process_results(name: str, results: list[float]) -> PointValues:
 
     def _normaltest(results: list[float]) -> bool:
         nonlocal normaltest_p_value, shapiro_p_value
+
+        if min(results) == max(results):
+            normaltest_p_value = shapiro_p_value = math.nan
+            return True
 
         normaltest_p_value = float(stats.normaltest(results).pvalue) if len(results) >= 8 else math.nan
         shapiro_p_value = float(stats.shapiro(results).pvalue)
@@ -131,12 +135,8 @@ def _process_results(name: str, results: list[float]) -> PointValues:
         if _normaltest(results):
             print("!!! Still don't pass !!!")
     mean = float(numpy.mean(results))
-    std = float(numpy.std(results, ddof=1)) if len(results) > 1 else 0.0
-    conf_int_half = (
-        float(stats.t.ppf(0.975, df=len(results) - 1) * stats.sem(results))
-        if len(results) > 1
-        else 0.0
-    )
+    std = float(numpy.std(results, ddof=1))
+    conf_int_half = float(stats.t.ppf(0.975, df=len(results) - 1) * stats.sem(results))
     return PointValues(
             raw_results=results,
             normaltest_p_value=normaltest_p_value,
@@ -165,7 +165,7 @@ def process_results(
         ),
         values={
             line_name: {x: _process_results(
-                f"{algo!s}, {benchmark_name}, {line_name}", y_values
+                f"{algo!s}, {benchmark_name}, {line_name}, x={x}", y_values
             ) for x, y_values in line_results.items()}
             for line_name, line_results in results.items()
         },

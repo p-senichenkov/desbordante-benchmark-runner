@@ -32,6 +32,7 @@ def run_iowas_low_arities(
     desbordante_root: Path,
     algorithm: EPacAlgo,
     test_count: int,
+    repeats: int,
 ) -> MemoryBenchmarksResults:
     prepare_iowas(desbordante_root)
     return run_memory_benchmarks(
@@ -40,4 +41,5 @@ def run_iowas_low_arities(
         desbordante_root,
         algorithm,
         test_count,
+        repeats,
     )

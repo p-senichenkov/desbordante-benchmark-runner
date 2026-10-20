@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from .algo import ALGO_CLASSES, EPacAlgo
 from .util import capture, run, build_desbordante
-from .statistics import AxisMeta, PlotStatstats, process_results
+from .statistics import AxisMeta, PlotStats, process_results
 
 
 class PeakMemoryUsage(BaseModel):
@@ -138,12 +138,12 @@ class TestArgs:
     ctor_args: dict[str, tp.Any] = field(default_factory=dict)
 
 
-def _run_memory_bench(
+def _build_memory_bench(
     algo: EPacAlgo,
     test_args_dict: dict[EPacAlgo, TestArgs],
     dataset_const: str,
     desbordante_root: Path,
-) -> AlgoMemoryUsage:
+) -> Path:
     test_args = test_args_dict[algo]
     algo_meta = ALGO_METAS[algo](**test_args.ctor_args)
     main_text = algo_meta.make_main(
@@ -155,9 +155,12 @@ def _run_memory_bench(
     ) as main_file:
         main_file.write(main_text)
 
-    build_target = build_desbordante(
+    return build_desbordante(
         desbordante_root, target="Desbordante.memory_bench"
     )
+
+
+def _run_memory_bench(build_target: Path) -> AlgoMemoryUsage:
     output = capture(build_target / "Desbordante.memory_bench", cwd=build_target)
     return AlgoMemoryUsage.model_validate_json(output)
 
@@ -172,9 +175,9 @@ class DatasetMeta:
 @dataclass
 class MemoryBenchmarksResultsSingleChara:
     # Currently ignored. TODO: remove
-    before: list[int] = field(default_factory=list)
-    after_load: list[int] = field(default_factory=list)
-    after_execute: list[int] = field(default_factory=list)
+    before: list[list[float]] = field(default_factory=list)
+    after_load: list[list[float]] = field(default_factory=list)
+    after_execute: list[list[float]] = field(default_factory=list)
 
 
 @dataclass
@@ -194,21 +197,34 @@ def run_memory_benchmarks(
     desbordante_root: Path,
     algorithm: EPacAlgo,
     test_count: int,
+    repeats: int,
 ) -> MemoryBenchmarksResults:
+    assert repeats >= 3
+
     algo_result = MemoryBenchmarksResults()
     for dataset in datasets[:test_count]:
-        memory_usage = _run_memory_bench(
+        build_target = _build_memory_bench(
             algorithm, test_args_dict, dataset.dataset_const, desbordante_root
         )
+        samples = []
+        for repeat in range(repeats):
+            print(
+                f"Running {algorithm}, {dataset.dataset_const} "
+                f"({repeat + 1} / {repeats})... ",
+                end="",
+                flush=True,
+            )
+            samples.append(_run_memory_bench(build_target))
+            print("done")
         algo_result.axis_x.append(dataset.num)
-        vspace = algo_result.vspace_kb
-        vspace.before.append(memory_usage.before.vspace_kb)
-        vspace.after_load.append(memory_usage.after_load.vspace_kb)
-        vspace.after_execute.append(memory_usage.after_execute.vspace_kb)
-        rss = algo_result.rss_kb
-        rss.before.append(memory_usage.before.rss_kb)
-        rss.after_load.append(memory_usage.after_load.rss_kb)
-        rss.after_execute.append(memory_usage.after_execute.rss_kb)
+        for metric in ("vspace_kb", "rss_kb"):
+            metric_results = getattr(algo_result, metric)
+            metric_results.after_load.append(
+                [getattr(sample.after_load, metric) for sample in samples]
+            )
+            metric_results.after_execute.append(
+                [getattr(sample.after_execute, metric) for sample in samples]
+            )
     return algo_result
 
 
@@ -221,8 +237,8 @@ def process_memory_benchmark_results(
     algorithm: EPacAlgo,
     benchmark_name: str,
     dataset_size_unit: str,
-) -> list[PlotStatstats]:
-    def _make_values(ys: list[int]) -> dict[float, float]:
+) -> list[PlotStats]:
+    def _make_values(ys: list[list[float]]) -> dict[int, list[float]]:
         assert len(ys) == len(results.axis_x)
         return {x: y for x, y in zip(results.axis_x, ys)}
 

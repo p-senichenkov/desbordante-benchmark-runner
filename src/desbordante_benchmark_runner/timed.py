@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .algo import ALGO_CLASSES, EPacAlgo
-from .statistics import AxisMeta, PlotStatstats, process_results
+from .statistics import AxisMeta, PlotStats, process_results
 from .util import IOWAS_SIZES, build_desbordante, capture, iowa_fname, prepare_iowas
 
 
@@ -27,7 +27,7 @@ class TimedBenchmarkMeta:
     num: int
 
 
-type TimedBenchmarksResults = dict[int, int]
+type TimedBenchmarksResults = dict[int, list[float]]
 
 
 def _make_benchmark_name(algo: EPacAlgo, dataset_name: str, name_suffix: str) -> str:
@@ -41,6 +41,8 @@ def _run_timed_benchmarks(
     test_count: int,
     repeats: int,
 ) -> TimedBenchmarksResults:
+    if repeats < 3:
+        raise ValueError("At least three repeats are required for statistics")
     build_desbordante(desbordante_root, benchmarks=True, target="Desbordante.benchmark")
 
     results: TimedBenchmarksResults = {}
@@ -48,13 +50,13 @@ def _run_timed_benchmarks(
         bench_name = _make_benchmark_name(
             algorithm, bench.dataset_name, bench.name_suffix
         )
-        times_ms = []
+        times_ms: list[float] = []
         for i in range(repeats):
             print(f"Running {bench_name} ({i + 1} / {repeats})... ", end="", flush=True)
             result = _timed_run(bench_name, desbordante_root)
             print(f"{result}ms")
             times_ms.append(result)
-        results[bench.num] = sum(times_ms) // repeats
+        results[bench.num] = times_ms
     return results
 
 
@@ -85,7 +87,7 @@ def process_timed_benchmark_results(
     algorithm: EPacAlgo,
     benchmark_name: str,
     dataset_size_unit: str,
-) -> list[PlotStatstats]:
+) -> list[PlotStats]:
     return [
         process_results(
             {"Run time": results},
