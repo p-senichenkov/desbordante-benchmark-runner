@@ -25,7 +25,6 @@ type Indices = list[int] | tuple[list[int], list[int]]
 
 
 class AlgoMeta(abc.ABC):
-    include_algo: str
     algo_class: str
     other_options: str = ""
     extra_includes: list[str] = field(default_factory=list)
@@ -37,7 +36,7 @@ class AlgoMeta(abc.ABC):
         options = (
             f"       {{kCsvConfig, {dataset_constant}}},\n"
             + self._make_indices_options(indices)
-            + f"{self.other_options}"
+            + self.other_options
         )
 
         extra_includes = ""
@@ -52,9 +51,8 @@ class AlgoMeta(abc.ABC):
             '#include "core/config/indices/type.h"\n'
             '#include "core/config/names.h"\n'
             '#include "tests/common/all_csv_configs.h"\n'
+            '#include "tests/memory/algorithms.h"\n'
             '#include "tests/memory/util.h"\n'
-            "\n"
-            f'#include "{self.include_algo}"\n'
             f"{extra_includes}"
             "\n"
             "int main() {\n"
@@ -65,7 +63,7 @@ class AlgoMeta(abc.ABC):
             f"      {options}\n"
             "   };\n"
             "\n"
-            f"  MeasuredRun<algos::pac_verifier::{self.algo_class}>(options);\n"
+            f"  MeasuredRun<{self.algo_class}>(options);\n"
             "}\n"
         )
 
@@ -78,9 +76,6 @@ def make_column_indices(indices: Indices) -> str:
 
 
 class DomainPACVerifierMeta(AlgoMeta):
-    include_algo = (
-        "core/algorithms/pac/pac_verifier/domain_pac_verifier/domain_pac_verifier.h"
-    )
     algo_class = ALGO_CLASSES[EPacAlgo.DOMAIN_PAC]
 
     def __init__(self, domain_ctor: str, domain_include: str | None = None) -> None:
@@ -101,7 +96,6 @@ class DomainPACVerifierMeta(AlgoMeta):
 
 
 class FDPACVerifierMeta(AlgoMeta):
-    include_algo = "core/algorithms/pac/pac_verifier/fd_pac_verifier/fd_pac_verifier.h"
     algo_class = ALGO_CLASSES[EPacAlgo.FD_PAC]
 
     def _make_indices_options(self, indices: Indices) -> str:
@@ -116,9 +110,6 @@ class FDPACVerifierMeta(AlgoMeta):
 
 
 class UCCPACVerifierMeta(AlgoMeta):
-    include_algo = (
-        "core/algorithms/pac/pac_verifier/ucc_pac_verifier/ucc_pac_verifier.h"
-    )
     algo_class = ALGO_CLASSES[EPacAlgo.UCC_PAC]
 
     def _make_indices_options(self, indices: Indices) -> str:
