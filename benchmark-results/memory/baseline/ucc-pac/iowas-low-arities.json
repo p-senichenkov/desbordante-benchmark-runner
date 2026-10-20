@@ -1,0 +1,281 @@
+[
+  {
+    "meta": {
+      "algo": "ucc-pac",
+      "benchmark_name": "iowas-low-arities",
+      "axis_x": {
+        "name": "Dataset size",
+        "unit": "rows"
+      },
+      "axis_y": {
+        "name": "Peak virtual space",
+        "unit": "KiB"
+      }
+    },
+    "values": {
+      "After load data": {
+        "5000": {
+          "raw_results": [
+            16204,
+            16204,
+            16204,
+            16204,
+            16204,
+            16204,
+            16204,
+            16204,
+            16204,
+            16204
+          ],
+          "normaltest_p_value": NaN,
+          "shapiro_p_value": NaN,
+          "mean": 16204.0,
+          "std": 0.0,
+          "conf_int_half": 0.0,
+          "dropped_by_iqr": false
+        },
+        "10000": {
+          "raw_results": [
+            23672,
+            23672,
+            23672,
+            23672,
+            23672,
+            23672,
+            23672,
+            23672,
+            23672,
+            23672
+          ],
+          "normaltest_p_value": NaN,
+          "shapiro_p_value": NaN,
+          "mean": 23672.0,
+          "std": 0.0,
+          "conf_int_half": 0.0,
+          "dropped_by_iqr": false
+        },
+        "20000": {
+          "raw_results": [
+            38448,
+            38448,
+            38448,
+            38448,
+            38448,
+            38448,
+            38448,
+            38448,
+            38448,
+            38448
+          ],
+          "normaltest_p_value": NaN,
+          "shapiro_p_value": NaN,
+          "mean": 38448.0,
+          "std": 0.0,
+          "conf_int_half": 0.0,
+          "dropped_by_iqr": false
+        }
+      },
+      "After execute": {
+        "5000": {
+          "raw_results": [
+            305948,
+            305948,
+            305948,
+            305948,
+            305948,
+            305948,
+            305948,
+            305948,
+            305948,
+            305948
+          ],
+          "normaltest_p_value": NaN,
+          "shapiro_p_value": NaN,
+          "mean": 305948.0,
+          "std": 0.0,
+          "conf_int_half": 0.0,
+          "dropped_by_iqr": false
+        },
+        "10000": {
+          "raw_results": [
+            1189008,
+            1189008,
+            1189008,
+            1189008,
+            1189008,
+            1189008,
+            1189008,
+            1189008,
+            1189008,
+            1189008
+          ],
+          "normaltest_p_value": NaN,
+          "shapiro_p_value": NaN,
+          "mean": 1189008.0,
+          "std": 0.0,
+          "conf_int_half": 0.0,
+          "dropped_by_iqr": false
+        },
+        "20000": {
+          "raw_results": [
+            4712776,
+            4712776,
+            4712776,
+            4712776,
+            4712776,
+            4712776,
+            4712776,
+            4712776,
+            4712776,
+            4712776
+          ],
+          "normaltest_p_value": NaN,
+          "shapiro_p_value": NaN,
+          "mean": 4712776.0,
+          "std": 0.0,
+          "conf_int_half": 0.0,
+          "dropped_by_iqr": false
+        }
+      }
+    }
+  },
+  {
+    "meta": {
+      "algo": "ucc-pac",
+      "benchmark_name": "iowas-low-arities",
+      "axis_x": {
+        "name": "Dataset size",
+        "unit": "rows"
+      },
+      "axis_y": {
+        "name": "Peak resident space",
+        "unit": "KiB"
+      }
+    },
+    "values": {
+      "After load data": {
+        "5000": {
+          "raw_results": [
+            10988,
+            11132,
+            11064,
+            11016,
+            11224,
+            10952,
+            11056,
+            11068,
+            11028,
+            11244
+          ],
+          "normaltest_p_value": 0.5144685988690503,
+          "shapiro_p_value": 0.3108204229787403,
+          "mean": 11077.2,
+          "std": 95.96388209460197,
+          "conf_int_half": 68.64842578012814,
+          "dropped_by_iqr": false
+        },
+        "10000": {
+          "raw_results": [
+            15696,
+            15728,
+            15756,
+            15776,
+            15824,
+            15832,
+            15840,
+            15856,
+            15940
+          ],
+          "normaltest_p_value": 0.9021989708750784,
+          "shapiro_p_value": 0.9004886721456034,
+          "mean": 15805.333333333334,
+          "std": 74.32361670424818,
+          "conf_int_half": 57.13018915444191,
+          "dropped_by_iqr": 15328
+        },
+        "20000": {
+          "raw_results": [
+            25452,
+            25308,
+            25628,
+            25112,
+            25576,
+            25504,
+            25424,
+            25428,
+            25544,
+            25408
+          ],
+          "normaltest_p_value": 0.0986872624275844,
+          "shapiro_p_value": 0.3662063698288347,
+          "mean": 25438.4,
+          "std": 147.31010374942605,
+          "conf_int_half": 105.37930003640702,
+          "dropped_by_iqr": false
+        }
+      },
+      "After execute": {
+        "5000": {
+          "raw_results": [
+            303328,
+            303316,
+            303352,
+            303280,
+            303332,
+            303356,
+            303320,
+            303276,
+            303352,
+            303356
+          ],
+          "normaltest_p_value": 0.472104751022831,
+          "shapiro_p_value": 0.07999440253804435,
+          "mean": 303326.8,
+          "std": 29.697736539264326,
+          "conf_int_half": 21.244480925060085,
+          "dropped_by_iqr": false
+        },
+        "10000": {
+          "raw_results": [
+            1186384,
+            1186340,
+            1186372,
+            1186380,
+            1186388,
+            1186400,
+            1186396,
+            1186400,
+            1186364,
+            1186372
+          ],
+          "normaltest_p_value": 0.24293451439283,
+          "shapiro_p_value": 0.34923254366769685,
+          "mean": 1186379.6,
+          "std": 18.614212013644007,
+          "conf_int_half": 13.315805113162352,
+          "dropped_by_iqr": false
+        },
+        "20000": {
+          "raw_results": [
+            4710212,
+            4710264,
+            4710284,
+            4710248,
+            4710244,
+            4710264,
+            4710192,
+            4710216,
+            4710284,
+            4710192
+          ],
+          "normaltest_p_value": 0.37063431206078556,
+          "shapiro_p_value": 0.26526586288340837,
+          "mean": 4710240.0,
+          "std": 35.07452383457575,
+          "conf_int_half": 25.09080284869644,
+          "dropped_by_iqr": false
+        }
+      }
+    }
+  }
+]
