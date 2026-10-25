@@ -1,28 +1,14 @@
-import abc
-import typing as tp
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from pydantic import BaseModel
-
 from ..algo import EPacAlgo
-from ..util import capture, run, build_desbordante
+from ..util import capture, build_desbordante
 from ..statistics import AxisMeta, PlotStats, process_results
 from .algo_meta import ALGO_BUILDERS
+from .benchmark_output import UnifiedBenchmarkOutput
 
 
-class PeakMemoryUsage(BaseModel):
-    vspace_kb: int
-    rss_kb: int
-
-
-class AlgoMemoryUsage(BaseModel):
-    before: PeakMemoryUsage
-    after_load: PeakMemoryUsage
-    after_execute: PeakMemoryUsage
-
-
-def _build_memory_bench(
+def _build_unified_bench(
     algo: EPacAlgo,
     extra_params: list[str],
     dataset_const: str,
@@ -41,9 +27,9 @@ def _build_memory_bench(
     )
 
 
-def _run_memory_bench(build_target: Path) -> AlgoMemoryUsage:
+def _run_unified_bench(build_target: Path) -> UnifiedBenchmarkOutput:
     output = capture(build_target / "Desbordante.memory_bench", cwd=build_target)
-    return AlgoMemoryUsage.model_validate_json(output)
+    return UnifiedBenchmarkOutput.model_validate_json(output)
 
 
 @dataclass
@@ -54,37 +40,45 @@ class DatasetMeta:
 
 
 @dataclass
-class MemoryBenchmarksResultsSingleChara:
-    # Currently ignored. TODO: remove
+class UnifiedBenchmarksResultsSingleChara:
     before: list[list[float]] = field(default_factory=list)
     after_load: list[list[float]] = field(default_factory=list)
     after_execute: list[list[float]] = field(default_factory=list)
 
 
 @dataclass
-class MemoryBenchmarksResults:
+class UnifiedBenchmarksResultsTime:
+    load_data: list[list[float]] = field(default_factory=list)
+    execute: list[list[float]] = field(default_factory=list)
+
+
+@dataclass
+class UnifiedBenchmarksResults:
     axis_x: list[int] = field(default_factory=list)
-    vspace_kb: MemoryBenchmarksResultsSingleChara = field(
-        default_factory=MemoryBenchmarksResultsSingleChara
+    vspace_kb: UnifiedBenchmarksResultsSingleChara = field(
+        default_factory=UnifiedBenchmarksResultsSingleChara
     )
-    rss_kb: MemoryBenchmarksResultsSingleChara = field(
-        default_factory=MemoryBenchmarksResultsSingleChara
+    rss_kb: UnifiedBenchmarksResultsSingleChara = field(
+        default_factory=UnifiedBenchmarksResultsSingleChara
+    )
+    time_ms: UnifiedBenchmarksResultsTime = field(
+        default_factory=UnifiedBenchmarksResultsTime
     )
 
 
-def _run_memory_benchs(
+def _run_unified_benchs(
     extra_params_dict: dict[EPacAlgo, list[str]],
     datasets: list[DatasetMeta],
     desbordante_root: Path,
     algorithm: EPacAlgo,
     test_count: int,
     repeats: int,
-) -> MemoryBenchmarksResults:
+) -> UnifiedBenchmarksResults:
     assert repeats >= 3
 
-    algo_result = MemoryBenchmarksResults()
+    algo_result = UnifiedBenchmarksResults()
     for dataset in datasets[:test_count]:
-        build_target = _build_memory_bench(
+        build_target = _build_unified_bench(
             algorithm, extra_params_dict[algorithm], dataset.dataset_const, desbordante_root
         )
         samples = []
@@ -95,30 +89,37 @@ def _run_memory_benchs(
                 end="",
                 flush=True,
             )
-            samples.append(_run_memory_bench(build_target))
+            samples.append(_run_unified_bench(build_target))
             print("done")
 
         algo_result.axis_x.append(dataset.num)
         for metric in ("vspace_kb", "rss_kb"):
             metric_results = getattr(algo_result, metric)
             metric_results.before.append(
-                [getattr(sample.before, metric) for sample in samples]
+                [getattr(sample.memory.before, metric) for sample in samples]
             )
             metric_results.after_load.append(
-                [getattr(sample.after_load, metric) for sample in samples]
+                [getattr(sample.memory.after_load, metric) for sample in samples]
             )
             metric_results.after_execute.append(
-                [getattr(sample.after_execute, metric) for sample in samples]
+                [getattr(sample.memory.after_execute, metric) for sample in samples]
             )
+        algo_result.time_ms.load_data.append(
+            [sample.time.load_data for sample in samples]
+        )
+        algo_result.time_ms.execute.append(
+            [sample.time.execute for sample in samples]
+        )
     return algo_result
 
 
 VSPACE_Y_META = AxisMeta(name="Peak virtual space", unit="KiB")
 RSS_Y_META = AxisMeta(name="Peak resident space", unit="KiB")
+TIME_Y_META = AxisMeta(name="Run time", unit="s")
 
 
-def _process_memory_benchmark_results(
-    results: MemoryBenchmarksResults,
+def _process_unified_benchmark_results(
+    results: UnifiedBenchmarksResults,
     algorithm: EPacAlgo,
     benchmark_name: str,
     dataset_size_unit: str,
@@ -152,10 +153,24 @@ def _process_memory_benchmark_results(
             RSS_Y_META,
             benchmark_name,
         ),
+        process_results(
+            {
+                "Load data": _make_values(
+                    [[time_ms / 1000 for time_ms in samples] for samples in results.time_ms.load_data]
+                ),
+                "Execute": _make_values(
+                    [[time_ms / 1000 for time_ms in samples] for samples in results.time_ms.execute]
+                ),
+            },
+            algorithm,
+            x_meta,
+            TIME_Y_META,
+            benchmark_name,
+        ),
     ]
 
 
-def run_memory_benchmarks(
+def run_unified_benchmarks(
     extra_params_dict: dict[EPacAlgo, list[str]],
     datasets: list[DatasetMeta],
     desbordante_root: Path,
@@ -165,8 +180,8 @@ def run_memory_benchmarks(
     benchmark_name: str,
     dataset_size_unit: str,
 ) -> list[PlotStats]:
-    return _process_memory_benchmark_results(
-        _run_memory_benchs(
+    return _process_unified_benchmark_results(
+        _run_unified_benchs(
             extra_params_dict,
             datasets,
             desbordante_root,

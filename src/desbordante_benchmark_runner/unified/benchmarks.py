@@ -1,16 +1,16 @@
 from pathlib import Path
 
 from ..algo import EPacAlgo
-from .runner import DatasetMeta, run_memory_benchmarks
-from ..util import IOWAS_SIZES, prepare_iowas, toksyntax
 from ..statistics import PlotStats
+from ..util import IOWAS_SIZES, prepare_iowas, toksyntax
+from .runner import DatasetMeta, run_unified_benchmarks
+
 
 IOWAS_LOW_ARITIES_EXTRA_PARAMS = {
-    EPacAlgo.DOMAIN_PAC: ["{2, 3, 8, 9}", "kIowaLowArityBall"],
+    EPacAlgo.DOMAIN_PAC: ["{2, 3, 8, 9}", "memory::kIowaLowArityBall"],
     EPacAlgo.FD_PAC: ["{2, 3}", "{8, 9}"],
     EPacAlgo.UCC_PAC: ["{2, 3, 8, 9}"],
 }
-
 
 IOWAS_LOW_ARITIES_DATASETS = [
     DatasetMeta(dataset_const=f"kIowa{toksyntax(size)}", num=size)
@@ -18,14 +18,14 @@ IOWAS_LOW_ARITIES_DATASETS = [
 ]
 
 
-def run_memory_iowas_low_arities(
+def run_unified_iowas_low_arities(
     desbordante_root: Path,
     algorithm: EPacAlgo,
     test_count: int,
     repeats: int,
 ) -> list[PlotStats]:
     prepare_iowas(desbordante_root)
-    return run_memory_benchmarks(
+    return run_unified_benchmarks(
         IOWAS_LOW_ARITIES_EXTRA_PARAMS,
         IOWAS_LOW_ARITIES_DATASETS,
         desbordante_root,
