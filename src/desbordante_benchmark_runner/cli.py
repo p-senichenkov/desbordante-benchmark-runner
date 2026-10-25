@@ -4,8 +4,7 @@ from pathlib import Path
 import click
 
 from .algo import EPacAlgo
-from .memory import process_memory_benchmark_results
-from .memory_benchmarks import run_iowas_low_arities as run_memory_iowas_low_arities
+from .memory.benchmarks import run_memory_iowas_low_arities
 from .statistics import PlotStats
 from .timed import process_timed_benchmark_results, run_timed_iowas_low_arities
 from .util import check_desbordante_root
@@ -43,10 +42,9 @@ def _write_report(output: Path, stats: list[PlotStats]) -> None:
 @click.option("-n", "--test-count", type=click.IntRange(min=1), default=5, show_default=True)
 @click.option("-r", "--repeats", type=click.IntRange(min=3), default=8, show_default=True)
 def memory(desbordante_root: Path, test_suite: ESuite, algorithm: EPacAlgo, output: Path, test_count: int, repeats: int) -> None:
-    """Run a memory benchmark and write a JSON statistics report."""
     check_desbordante_root(desbordante_root)
     results = SUITE_TO_MEMORY_RUNNER[test_suite](desbordante_root, algorithm, test_count, repeats)
-    _write_report(output, process_memory_benchmark_results(results, algorithm, test_suite.value, DATASET_SIZE_UNIT))
+    _write_report(output, results)
 
 
 @main.command()
