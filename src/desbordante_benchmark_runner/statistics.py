@@ -1,12 +1,24 @@
 import typing as tp
 from dataclasses import asdict, dataclass
 import json
+import os
+import platform
 
 from scipy import stats
 import numpy
 import math
 
 from .algo import EPacAlgo
+
+
+def _system_info() -> dict[str, tp.Any]:
+    return {
+        "logical_cpu_count": os.cpu_count(),
+        "total_physical_ram_bytes": (
+            os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES")
+        ),
+        "uname": platform.uname()._asdict(),
+    }
 
 
 @dataclass(frozen=True)
@@ -85,12 +97,18 @@ class PlotStats:
 
     @staticmethod
     def dump(stats: list["PlotStats"]) -> str:
-        lst = [stat._to_dict() for stat in stats]
-        return json.dumps(lst, indent=2)
+        return json.dumps(
+            {
+                "system_info": _system_info(),
+                "benchmarks": [stat._to_dict() for stat in stats],
+            },
+            indent=2,
+        )
 
     @staticmethod
     def load(st: str) -> list["PlotStats"]:
-        lst = json.loads(st)
+        report = json.loads(st)
+        lst = report["benchmarks"]
         assert isinstance(lst, list)
         return [PlotStats._from_dict(stat) for stat in lst]
 

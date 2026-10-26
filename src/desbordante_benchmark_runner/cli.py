@@ -4,6 +4,7 @@ from pathlib import Path
 import click
 
 from .algo import EPacAlgo
+from .accuracy.cli import accuracy, accuracy_plot
 from .statistics import PlotStats
 from .unified.benchmarks import run_unified_iowas_low_arities
 from .util import check_desbordante_root
@@ -51,6 +52,10 @@ def plot(input: Path, output: Path | None) -> None:
     """Build matplotlib plots from a report produced by unified."""
 
     build_plots(PlotStats.load(input.read_text(encoding="utf-8")), output)
+
+
+main.add_command(accuracy)
+main.add_command(accuracy_plot)
 
 
 if __name__ == "__main__":
