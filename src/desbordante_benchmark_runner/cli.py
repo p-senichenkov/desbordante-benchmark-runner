@@ -46,11 +46,14 @@ def _write_report(output: Path, results: Iterable[list[PlotStats]]) -> None:
 @click.option("-s", "--test-suite", type=ESuite, required=True)
 @click.option("-a", "--algorithm", type=EPacAlgo, required=True)
 @click.option("-o", "--output", type=OUTPUT_PATH, default=Path("unified-report.json"), show_default=True)
-@click.option("-n", "--test-count", type=click.IntRange(min=1), default=5, show_default=True)
+@click.option("--test-from", type=click.IntRange(min=1), default=1, show_default=True, help="First benchmark index (1-based, inclusive).")
+@click.option("-n", "--test-to", type=click.IntRange(min=1), default=5, show_default=True, help="Last benchmark index (1-based, inclusive).")
 @click.option("-r", "--repeats", type=click.IntRange(min=3), default=8, show_default=True)
-def unified(desbordante_root: Path, test_suite: ESuite, algorithm: EPacAlgo, output: Path, test_count: int, repeats: int) -> None:
+def unified(desbordante_root: Path, test_suite: ESuite, algorithm: EPacAlgo, output: Path, test_from: int, test_to: int, repeats: int) -> None:
+    if test_from > test_to:
+        raise click.BadParameter("must be at least --test-from", param_hint="--test-to")
     check_desbordante_root(desbordante_root)
-    results = SUITE_TO_UNIFIED_RUNNER[test_suite](desbordante_root, algorithm, test_count, repeats)
+    results = SUITE_TO_UNIFIED_RUNNER[test_suite](desbordante_root, algorithm, test_from, test_to, repeats)
     _write_report(output, results)
 
 

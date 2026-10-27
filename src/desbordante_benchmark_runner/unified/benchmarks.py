@@ -22,7 +22,8 @@ IOWAS_LOW_ARITIES_DATASETS = [
 def run_unified_iowas_low_arities(
     desbordante_root: Path,
     algorithm: EPacAlgo,
-    test_count: int,
+    test_from: int,
+    test_to: int,
     repeats: int,
 ) -> Generator[list[PlotStats], None, None]:
     prepare_iowas(desbordante_root)
@@ -31,7 +32,8 @@ def run_unified_iowas_low_arities(
         IOWAS_LOW_ARITIES_DATASETS,
         desbordante_root,
         algorithm,
-        test_count,
+        test_from,
+        test_to,
         repeats,
         "Iowas low arities",
         "rows",

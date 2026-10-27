@@ -72,12 +72,14 @@ def _run_unified_benchs(
     datasets: list[DatasetMeta],
     desbordante_root: Path,
     algorithm: EPacAlgo,
-    test_count: int,
+    test_from: int,
+    test_to: int,
     repeats: int,
 ) -> Generator[UnifiedBenchmarksResults, None, None]:
     assert repeats >= 3
+    assert 1 <= test_from <= test_to
 
-    for dataset in datasets[:test_count]:
+    for dataset in datasets[test_from - 1:test_to]:
         build_target = _build_unified_bench(
             algorithm, extra_params_dict[algorithm], dataset.dataset_const, desbordante_root
         )
@@ -175,7 +177,8 @@ def run_unified_benchmarks(
     datasets: list[DatasetMeta],
     desbordante_root: Path,
     algorithm: EPacAlgo,
-    test_count: int,
+    test_from: int,
+    test_to: int,
     repeats: int,
     benchmark_name: str,
     dataset_size_unit: str,
@@ -185,7 +188,8 @@ def run_unified_benchmarks(
         datasets,
         desbordante_root,
         algorithm,
-        test_count,
+        test_from,
+        test_to,
         repeats,
     ):
         yield _process_unified_benchmark_results(
