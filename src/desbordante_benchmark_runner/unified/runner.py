@@ -1,3 +1,4 @@
+from collections.abc import Generator
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -73,10 +74,9 @@ def _run_unified_benchs(
     algorithm: EPacAlgo,
     test_count: int,
     repeats: int,
-) -> UnifiedBenchmarksResults:
+) -> Generator[UnifiedBenchmarksResults, None, None]:
     assert repeats >= 3
 
-    algo_result = UnifiedBenchmarksResults()
     for dataset in datasets[:test_count]:
         build_target = _build_unified_bench(
             algorithm, extra_params_dict[algorithm], dataset.dataset_const, desbordante_root
@@ -92,7 +92,7 @@ def _run_unified_benchs(
             samples.append(_run_unified_bench(build_target))
             print("done")
 
-        algo_result.axis_x.append(dataset.num)
+        algo_result = UnifiedBenchmarksResults(axis_x=[dataset.num])
         for metric in ("vspace_kb", "rss_kb"):
             metric_results = getattr(algo_result, metric)
             metric_results.before.append(
@@ -110,7 +110,7 @@ def _run_unified_benchs(
         algo_result.time_ms.execute.append(
             [sample.time.execute for sample in samples]
         )
-    return algo_result
+        yield algo_result
 
 
 VSPACE_Y_META = AxisMeta(name="Peak virtual space", unit="KiB")
@@ -179,17 +179,18 @@ def run_unified_benchmarks(
     repeats: int,
     benchmark_name: str,
     dataset_size_unit: str,
-) -> list[PlotStats]:
-    return _process_unified_benchmark_results(
-        _run_unified_benchs(
-            extra_params_dict,
-            datasets,
-            desbordante_root,
-            algorithm,
-            test_count,
-            repeats,
-        ),
+) -> Generator[list[PlotStats], None, None]:
+    for results in _run_unified_benchs(
+        extra_params_dict,
+        datasets,
+        desbordante_root,
         algorithm,
-        benchmark_name,
-        dataset_size_unit,
-    )
+        test_count,
+        repeats,
+    ):
+        yield _process_unified_benchmark_results(
+            results,
+            algorithm,
+            benchmark_name,
+            dataset_size_unit,
+        )

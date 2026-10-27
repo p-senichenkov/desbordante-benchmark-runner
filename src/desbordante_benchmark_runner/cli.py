@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from enum import StrEnum
 from pathlib import Path
 
@@ -5,7 +6,7 @@ import click
 
 from .algo import EPacAlgo
 from .accuracy.cli import accuracy, accuracy_plot
-from .statistics import PlotStats
+from .statistics import PlotStats, StatsMeta
 from .unified.benchmarks import run_unified_iowas_low_arities
 from .util import check_desbordante_root
 from .plots import build_plots
@@ -27,9 +28,17 @@ def main() -> None:
     """Benchmark Desbordante and build plots from benchmark reports."""
 
 
-def _write_report(output: Path, stats: list[PlotStats]) -> None:
+def _write_report(output: Path, results: Iterable[list[PlotStats]]) -> None:
     output.parent.mkdir(exist_ok=True, parents=True)
-    output.write_text(PlotStats.dump(stats), encoding="utf-8")
+
+    report: dict[StatsMeta, PlotStats] = {}
+    for stats in results:
+        for stat in stats:
+            if stat.meta not in report:
+                report[stat.meta] = PlotStats(meta=stat.meta, values={})
+            for name, values in stat.values.items():
+                report[stat.meta].values.setdefault(name, {}).update(values)
+        output.write_text(PlotStats.dump(list(report.values())), encoding="utf-8")
 
 
 @main.command()

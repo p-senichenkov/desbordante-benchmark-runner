@@ -1,3 +1,4 @@
+from collections.abc import Generator
 from pathlib import Path
 
 from ..algo import EPacAlgo
@@ -23,7 +24,7 @@ def run_unified_iowas_low_arities(
     algorithm: EPacAlgo,
     test_count: int,
     repeats: int,
-) -> list[PlotStats]:
+) -> Generator[list[PlotStats], None, None]:
     prepare_iowas(desbordante_root)
     return run_unified_benchmarks(
         IOWAS_LOW_ARITIES_EXTRA_PARAMS,
