@@ -1,0 +1,301 @@
+[
+  {
+    "meta": {
+      "algo": "ucc-pac",
+      "benchmark_name": "Iowas low arities",
+      "axis_x": {
+        "name": "Dataset size",
+        "unit": "rows"
+      },
+      "axis_y": {
+        "name": "Peak virtual space",
+        "unit": "KiB"
+      }
+    },
+    "values": {
+      "Before": {
+        "5000": {
+          "raw_results": [
+            9412,
+            9412,
+            9412,
+            9412,
+            9412
+          ],
+          "normaltest_p_value": NaN,
+          "shapiro_p_value": NaN,
+          "mean": 9412.0,
+          "std": 0.0,
+          "conf_int_half": 0.0,
+          "dropped_by_iqr": false
+        },
+        "10000": {
+          "raw_results": [
+            9412,
+            9412,
+            9412,
+            9412,
+            9412
+          ],
+          "normaltest_p_value": NaN,
+          "shapiro_p_value": NaN,
+          "mean": 9412.0,
+          "std": 0.0,
+          "conf_int_half": 0.0,
+          "dropped_by_iqr": false
+        }
+      },
+      "After load data": {
+        "5000": {
+          "raw_results": [
+            16852,
+            16852,
+            16852,
+            16852,
+            16852
+          ],
+          "normaltest_p_value": NaN,
+          "shapiro_p_value": NaN,
+          "mean": 16852.0,
+          "std": 0.0,
+          "conf_int_half": 0.0,
+          "dropped_by_iqr": false
+        },
+        "10000": {
+          "raw_results": [
+            24320,
+            24320,
+            24320,
+            24320,
+            24320
+          ],
+          "normaltest_p_value": NaN,
+          "shapiro_p_value": NaN,
+          "mean": 24320.0,
+          "std": 0.0,
+          "conf_int_half": 0.0,
+          "dropped_by_iqr": false
+        }
+      },
+      "After execute": {
+        "5000": {
+          "raw_results": [
+            306596,
+            306596,
+            306596,
+            306596,
+            306596
+          ],
+          "normaltest_p_value": NaN,
+          "shapiro_p_value": NaN,
+          "mean": 306596.0,
+          "std": 0.0,
+          "conf_int_half": 0.0,
+          "dropped_by_iqr": false
+        },
+        "10000": {
+          "raw_results": [
+            1189656,
+            1189656,
+            1189656,
+            1189656,
+            1189656
+          ],
+          "normaltest_p_value": NaN,
+          "shapiro_p_value": NaN,
+          "mean": 1189656.0,
+          "std": 0.0,
+          "conf_int_half": 0.0,
+          "dropped_by_iqr": false
+        }
+      }
+    }
+  },
+  {
+    "meta": {
+      "algo": "ucc-pac",
+      "benchmark_name": "Iowas low arities",
+      "axis_x": {
+        "name": "Dataset size",
+        "unit": "rows"
+      },
+      "axis_y": {
+        "name": "Peak resident space",
+        "unit": "KiB"
+      }
+    },
+    "values": {
+      "Before": {
+        "5000": {
+          "raw_results": [
+            5544,
+            5544,
+            5544,
+            5544,
+            5544
+          ],
+          "normaltest_p_value": NaN,
+          "shapiro_p_value": NaN,
+          "mean": 5544.0,
+          "std": 0.0,
+          "conf_int_half": 0.0,
+          "dropped_by_iqr": false
+        },
+        "10000": {
+          "raw_results": [
+            5544,
+            5544,
+            5544,
+            5544
+          ],
+          "normaltest_p_value": NaN,
+          "shapiro_p_value": NaN,
+          "mean": 5544.0,
+          "std": 0.0,
+          "conf_int_half": 0.0,
+          "dropped_by_iqr": 5540
+        }
+      },
+      "After load data": {
+        "5000": {
+          "raw_results": [
+            11760,
+            11776,
+            11788,
+            11796
+          ],
+          "normaltest_p_value": NaN,
+          "shapiro_p_value": 0.8496829276387556,
+          "mean": 11780.0,
+          "std": 15.663120165960974,
+          "conf_int_half": 24.92351945068862,
+          "dropped_by_iqr": 11604
+        },
+        "10000": {
+          "raw_results": [
+            16216,
+            16296,
+            16404,
+            16460,
+            16496
+          ],
+          "normaltest_p_value": NaN,
+          "shapiro_p_value": 0.660573334945787,
+          "mean": 16374.4,
+          "std": 116.43367210562415,
+          "conf_int_half": 144.57149883221538,
+          "dropped_by_iqr": false
+        }
+      },
+      "After execute": {
+        "5000": {
+          "raw_results": [
+            304000,
+            304004,
+            304004,
+            304008
+          ],
+          "normaltest_p_value": NaN,
+          "shapiro_p_value": 0.6829615315893258,
+          "mean": 304004.0,
+          "std": 3.265986323710904,
+          "conf_int_half": 5.196913054500444,
+          "dropped_by_iqr": 304052
+        },
+        "10000": {
+          "raw_results": [
+            1187028,
+            1187040,
+            1187056,
+            1187084,
+            1187128
+          ],
+          "normaltest_p_value": NaN,
+          "shapiro_p_value": 0.6046903749839998,
+          "mean": 1187067.2,
+          "std": 39.93995493237317,
+          "conf_int_half": 49.59200412940862,
+          "dropped_by_iqr": false
+        }
+      }
+    }
+  },
+  {
+    "meta": {
+      "algo": "ucc-pac",
+      "benchmark_name": "Iowas low arities",
+      "axis_x": {
+        "name": "Dataset size",
+        "unit": "rows"
+      },
+      "axis_y": {
+        "name": "Run time",
+        "unit": "s"
+      }
+    },
+    "values": {
+      "Load data": {
+        "5000": {
+          "raw_results": [
+            0.717,
+            0.717,
+            0.718,
+            0.722
+          ],
+          "normaltest_p_value": NaN,
+          "shapiro_p_value": 0.05122945725114442,
+          "mean": 0.7185,
+          "std": 0.002380476142847619,
+          "conf_int_half": 0.0037878687528107085,
+          "dropped_by_iqr": 0.733
+        },
+        "10000": {
+          "raw_results": [
+            1.446,
+            1.447,
+            1.449,
+            1.452
+          ],
+          "normaltest_p_value": NaN,
+          "shapiro_p_value": 0.688936437322416,
+          "mean": 1.4485,
+          "std": 0.0026457513110645786,
+          "conf_int_half": 0.004209980742298497,
+          "dropped_by_iqr": 1.432
+        }
+      },
+      "Execute": {
+        "5000": {
+          "raw_results": [
+            246.763,
+            247.316,
+            247.798,
+            248.511,
+            248.581
+          ],
+          "normaltest_p_value": NaN,
+          "shapiro_p_value": 0.5549860317656294,
+          "mean": 247.79379999999998,
+          "std": 0.7786075391363679,
+          "conf_int_half": 0.9667689500756563,
+          "dropped_by_iqr": false
+        },
+        "10000": {
+          "raw_results": [
+            986.86,
+            989.953,
+            992.541,
+            994.857,
+            998.994
+          ],
+          "normaltest_p_value": NaN,
+          "shapiro_p_value": 0.9947909407449843,
+          "mean": 992.641,
+          "std": 4.634829284882028,
+          "conf_int_half": 5.754900660858511,
+          "dropped_by_iqr": false
+        }
+      }
+    }
+  }
+]
