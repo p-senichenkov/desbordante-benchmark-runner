@@ -1,0 +1,396 @@
+{
+  "system_info": {
+    "logical_cpu_count": 20,
+    "total_physical_ram_bytes": 33251852288,
+    "uname": {
+      "system": "Linux",
+      "node": "TUF17",
+      "release": "7.2.5-1-default",
+      "version": "#1 SMP PREEMPT_DYNAMIC Sat Sep 12 06:50:42 UTC 2026 (6b7e8a9)",
+      "machine": "x86_64",
+      "processor": "x86_64"
+    }
+  },
+  "benchmarks": [
+    {
+      "meta": {
+        "algo": "ucc-pac",
+        "benchmark_name": "Iowas low arities",
+        "axis_x": {
+          "name": "Dataset size",
+          "unit": "rows"
+        },
+        "axis_y": {
+          "name": "Peak virtual space",
+          "unit": "KiB"
+        }
+      },
+      "values": {
+        "Before": {
+          "5000": {
+            "raw_results": [
+              9616,
+              9616,
+              9616,
+              9616,
+              9616,
+              9616,
+              9616,
+              9616,
+              9616,
+              9616
+            ],
+            "normaltest_p_value": NaN,
+            "shapiro_p_value": NaN,
+            "mean": 9616.0,
+            "std": 0.0,
+            "conf_int_half": 0.0,
+            "dropped_by_iqr": false
+          },
+          "10000": {
+            "raw_results": [
+              9616,
+              9616,
+              9616,
+              9616,
+              9616,
+              9616,
+              9616,
+              9616,
+              9616,
+              9616
+            ],
+            "normaltest_p_value": NaN,
+            "shapiro_p_value": NaN,
+            "mean": 9616.0,
+            "std": 0.0,
+            "conf_int_half": 0.0,
+            "dropped_by_iqr": false
+          }
+        },
+        "After load data": {
+          "5000": {
+            "raw_results": [
+              17036,
+              17036,
+              17036,
+              17036,
+              17036,
+              17036,
+              17036,
+              17036,
+              17036,
+              17036
+            ],
+            "normaltest_p_value": NaN,
+            "shapiro_p_value": NaN,
+            "mean": 17036.0,
+            "std": 0.0,
+            "conf_int_half": 0.0,
+            "dropped_by_iqr": false
+          },
+          "10000": {
+            "raw_results": [
+              24532,
+              24532,
+              24532,
+              24532,
+              24532,
+              24532,
+              24532,
+              24532,
+              24532,
+              24532
+            ],
+            "normaltest_p_value": NaN,
+            "shapiro_p_value": NaN,
+            "mean": 24532.0,
+            "std": 0.0,
+            "conf_int_half": 0.0,
+            "dropped_by_iqr": false
+          }
+        },
+        "After execute": {
+          "5000": {
+            "raw_results": [
+              17036,
+              17036,
+              17036,
+              17036,
+              17036,
+              17036,
+              17036,
+              17036,
+              17036,
+              17036
+            ],
+            "normaltest_p_value": NaN,
+            "shapiro_p_value": NaN,
+            "mean": 17036.0,
+            "std": 0.0,
+            "conf_int_half": 0.0,
+            "dropped_by_iqr": false
+          },
+          "10000": {
+            "raw_results": [
+              24532,
+              24532,
+              24532,
+              24532,
+              24532,
+              24532,
+              24532,
+              24532,
+              24532,
+              24532
+            ],
+            "normaltest_p_value": NaN,
+            "shapiro_p_value": NaN,
+            "mean": 24532.0,
+            "std": 0.0,
+            "conf_int_half": 0.0,
+            "dropped_by_iqr": false
+          }
+        }
+      }
+    },
+    {
+      "meta": {
+        "algo": "ucc-pac",
+        "benchmark_name": "Iowas low arities",
+        "axis_x": {
+          "name": "Dataset size",
+          "unit": "rows"
+        },
+        "axis_y": {
+          "name": "Peak resident space",
+          "unit": "KiB"
+        }
+      },
+      "values": {
+        "Before": {
+          "5000": {
+            "raw_results": [
+              5992,
+              5992,
+              5992,
+              5992,
+              5996,
+              5996,
+              5996,
+              5996,
+              5996,
+              5996
+            ],
+            "normaltest_p_value": 0.01677264559067293,
+            "shapiro_p_value": 0.00016867907566356556,
+            "mean": 5994.4,
+            "std": 2.0655911179772892,
+            "conf_int_half": 1.4776348711567198,
+            "dropped_by_iqr": false
+          },
+          "10000": {
+            "raw_results": [
+              5992,
+              5992,
+              5992,
+              5992,
+              5996,
+              5996,
+              5996,
+              5996,
+              5996,
+              5996
+            ],
+            "normaltest_p_value": 0.01677264559067293,
+            "shapiro_p_value": 0.00016867907566356556,
+            "mean": 5994.4,
+            "std": 2.0655911179772892,
+            "conf_int_half": 1.4776348711567198,
+            "dropped_by_iqr": false
+          }
+        },
+        "After load data": {
+          "5000": {
+            "raw_results": [
+              11636,
+              11776,
+              11788,
+              11796,
+              11812,
+              11832,
+              11836,
+              11852,
+              11872
+            ],
+            "normaltest_p_value": 0.0026673655728911404,
+            "shapiro_p_value": 0.03463659189151108,
+            "mean": 11800.0,
+            "std": 68.90573270780887,
+            "conf_int_half": 52.965634854493395,
+            "dropped_by_iqr": 11628
+          },
+          "10000": {
+            "raw_results": [
+              16420,
+              16312,
+              16508,
+              16436,
+              16408,
+              16468,
+              16552,
+              16564,
+              16476,
+              16600
+            ],
+            "normaltest_p_value": 0.8533621132312683,
+            "shapiro_p_value": 0.9282782427290585,
+            "mean": 16474.4,
+            "std": 85.77386289281576,
+            "conf_int_half": 61.35892517215668,
+            "dropped_by_iqr": false
+          }
+        },
+        "After execute": {
+          "5000": {
+            "raw_results": [
+              11636,
+              11776,
+              11788,
+              11796,
+              11812,
+              11832,
+              11836,
+              11852,
+              11872
+            ],
+            "normaltest_p_value": 0.0026673655728911404,
+            "shapiro_p_value": 0.03463659189151108,
+            "mean": 11800.0,
+            "std": 68.90573270780887,
+            "conf_int_half": 52.965634854493395,
+            "dropped_by_iqr": 11628
+          },
+          "10000": {
+            "raw_results": [
+              16420,
+              16312,
+              16508,
+              16436,
+              16408,
+              16468,
+              16552,
+              16564,
+              16476,
+              16600
+            ],
+            "normaltest_p_value": 0.8533621132312683,
+            "shapiro_p_value": 0.9282782427290585,
+            "mean": 16474.4,
+            "std": 85.77386289281576,
+            "conf_int_half": 61.35892517215668,
+            "dropped_by_iqr": false
+          }
+        }
+      }
+    },
+    {
+      "meta": {
+        "algo": "ucc-pac",
+        "benchmark_name": "Iowas low arities",
+        "axis_x": {
+          "name": "Dataset size",
+          "unit": "rows"
+        },
+        "axis_y": {
+          "name": "Run time",
+          "unit": "s"
+        }
+      },
+      "values": {
+        "Load data": {
+          "5000": {
+            "raw_results": [
+              0.407,
+              0.409,
+              0.41,
+              0.411,
+              0.414,
+              0.415,
+              0.416,
+              0.417,
+              0.42
+            ],
+            "normaltest_p_value": 0.8008021942499147,
+            "shapiro_p_value": 0.9161843719958342,
+            "mean": 0.4132222222222222,
+            "std": 0.004236088342379616,
+            "conf_int_half": 0.003256145744872518,
+            "dropped_by_iqr": 0.443
+          },
+          "10000": {
+            "raw_results": [
+              0.833,
+              0.834,
+              0.835,
+              0.835,
+              0.837,
+              0.838,
+              0.84,
+              0.842,
+              0.842
+            ],
+            "normaltest_p_value": 0.4287275760425604,
+            "shapiro_p_value": 0.3425611844191466,
+            "mean": 0.8373333333333332,
+            "std": 0.003391164991562637,
+            "conf_int_half": 0.0026066801645676803,
+            "dropped_by_iqr": 0.858
+          }
+        },
+        "Execute": {
+          "5000": {
+            "raw_results": [
+              568.926,
+              564.853,
+              564.839,
+              564.031,
+              562.319,
+              561.344,
+              562.724,
+              566.435,
+              565.343,
+              562.016
+            ],
+            "normaltest_p_value": 0.5172359492258645,
+            "shapiro_p_value": 0.6275578797490906,
+            "mean": 564.2829999999999,
+            "std": 2.311192092598296,
+            "conf_int_half": 1.6533272244649826,
+            "dropped_by_iqr": false
+          },
+          "10000": {
+            "raw_results": [
+              2244.062,
+              2249.872,
+              2249.486,
+              2246.991,
+              2246.714,
+              2243.648,
+              2246.21,
+              2242.207,
+              2244.78,
+              2236.276
+            ],
+            "normaltest_p_value": 0.10093884273840817,
+            "shapiro_p_value": 0.344350988247876,
+            "mean": 2245.0245999999997,
+            "std": 3.928325603160269,
+            "conf_int_half": 2.8101548491220747,
+            "dropped_by_iqr": false
+          }
+        }
+      }
+    }
+  ]
+}
