@@ -1,10 +1,12 @@
-from collections.abc import Generator
+import typing as tp
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from ..algo import EPacAlgo
 from ..util import capture, build_desbordante
-from ..statistics import AxisMeta, PlotStats, process_results
+from ..statistics import AxisMeta
+
+from .statistics import StatsMeta, PlotStats, process_results
 from .algo_meta import ALGO_BUILDERS
 from .benchmark_output import UnifiedBenchmarkOutput
 
@@ -75,7 +77,7 @@ def _run_unified_benchs(
     test_from: int,
     test_to: int,
     repeats: int,
-) -> Generator[UnifiedBenchmarksResults, None, None]:
+) -> tp.Generator[UnifiedBenchmarksResults, None, None]:
     assert repeats >= 3
     assert 1 <= test_from <= test_to
 
@@ -182,7 +184,7 @@ def run_unified_benchmarks(
     repeats: int,
     benchmark_name: str,
     dataset_size_unit: str,
-) -> Generator[list[PlotStats], None, None]:
+) -> tp.Generator[list[PlotStats], None, None]:
     for results in _run_unified_benchs(
         extra_params_dict,
         datasets,
@@ -198,3 +200,16 @@ def run_unified_benchmarks(
             benchmark_name,
             dataset_size_unit,
         )
+
+
+def write_report(output: Path, results: tp.Iterable[list[PlotStats]]) -> None:
+    output.parent.mkdir(exist_ok=True, parents=True)
+
+    report: dict[StatsMeta, PlotStats] = {}
+    for stats in results:
+        for stat in stats:
+            if stat.meta not in report:
+                report[stat.meta] = PlotStats(meta=stat.meta, values={})
+            for name, values in stat.values.items():
+                report[stat.meta].values.setdefault(name, {}).update(values)
+        output.write_text(PlotStats.dump(list(report.values())), encoding="utf-8")

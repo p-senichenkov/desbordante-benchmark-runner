@@ -1,19 +1,14 @@
-from collections.abc import Callable
+import typing as tp
 from statistics import fmean
 
-from pydantic import BaseModel
+import numpy
 
 from .benchmark_output import AccuracyBenchmarkOutput, TestResults
 
 
-class MeanErrors(BaseModel):
-    epsilon: float
-    delta: float
-
-
 def aggregate_results[T](
     results: AccuracyBenchmarkOutput,
-    aggregation: Callable[[TestResults], T],
+    aggregation: tp.Callable[[TestResults], T],
 ) -> dict[int, T]:
     assert results
     test_names = set(next(iter(results.values())))
@@ -22,8 +17,18 @@ def aggregate_results[T](
     return {numeric: aggregation(tests) for numeric, tests in sorted(results.items())}
 
 
-def mean_absolute_errors(tests: TestResults) -> MeanErrors:
-    return MeanErrors(
-        epsilon=fmean(result.epsilon.absolute_error for result in tests.values()),
-        delta=fmean(result.delta.absolute_error for result in tests.values()),
-    )
+def error_percentiles(tests: TestResults) -> dict[str, dict[str, float]]:
+    return {
+        metric: {
+            f"p{percentile}": float(value)
+            for percentile, value in zip(
+                (50, 90, 100),
+                numpy.percentile(
+                    [getattr(result, metric).absolute_error for result in tests.values()],
+                    (50, 90, 100),
+                    method="linear",
+                ),
+            )
+        }
+        for metric in ("epsilon", "delta")
+    }

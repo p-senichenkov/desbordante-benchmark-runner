@@ -2,7 +2,8 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 
-from .algo import ALGO_NAMES
+from ..algo import ALGO_NAMES
+
 from .statistics import PlotStats
 
 

@@ -2,9 +2,10 @@ from collections.abc import Generator
 from pathlib import Path
 
 from ..algo import EPacAlgo
-from ..statistics import PlotStats
 from ..util import IOWAS_SIZES, prepare_iowas, toksyntax
 from .runner import DatasetMeta, run_unified_benchmarks
+
+from .statistics import PlotStats
 
 
 IOWAS_LOW_ARITIES_EXTRA_PARAMS = {
