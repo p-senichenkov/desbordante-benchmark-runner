@@ -4,9 +4,8 @@ from pathlib import Path
 
 from ..algo import EPacAlgo
 from ..util import capture, build_desbordante
-from ..statistics import AxisMeta
 
-from .statistics import StatsMeta, PlotStats, process_results
+from .statistics import AxisMeta, StatsMeta, PlotStats, process_results
 from .algo_meta import ALGO_BUILDERS
 from .benchmark_output import UnifiedBenchmarkOutput
 

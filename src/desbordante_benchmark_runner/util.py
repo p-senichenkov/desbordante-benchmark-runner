@@ -10,6 +10,9 @@ REQUIRED_DATASET_ARCHIVES = (
     "performance-tests.zip",
 )
 
+EPSILON = "epsilon"
+DELTA = "delta"
+
 
 def toksyntax(num: int) -> str:
     magnitude_k = 0

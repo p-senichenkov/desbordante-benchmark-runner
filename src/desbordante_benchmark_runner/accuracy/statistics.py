@@ -1,34 +1,63 @@
 import typing as tp
-from statistics import fmean
+import json
+from collections import defaultdict
 
 import numpy
 
-from .benchmark_output import AccuracyBenchmarkOutput, TestResults
+from ..util import EPSILON, DELTA
+
+from .benchmark_output import AccuracyBenchmarkOutput, TestResults, Error, EpsilonDeltaError
 
 
-def aggregate_results[T](
+type LinePoints = dict[int, float]
+type Lines = dict[str, LinePoints]
+
+
+def _percentiles(
     results: AccuracyBenchmarkOutput,
-    aggregation: tp.Callable[[TestResults], T],
-) -> dict[int, T]:
-    assert results
-    test_names = set(next(iter(results.values())))
-    assert test_names
-    assert all(set(tests) == test_names for tests in results.values())
-    return {numeric: aggregation(tests) for numeric, tests in sorted(results.items())}
+    get_value: tp.Callable[[EpsilonDeltaError], float],
+) -> Lines:
+    PERCENTILE_POINTS = (50, 90, 100)
 
-
-def error_percentiles(tests: TestResults) -> dict[str, dict[str, float]]:
-    return {
-        metric: {
-            f"p{percentile}": float(value)
-            for percentile, value in zip(
-                (50, 90, 100),
-                numpy.percentile(
-                    [getattr(result, metric).absolute_error for result in tests.values()],
-                    (50, 90, 100),
-                    method="linear",
-                ),
+    result: Lines = defaultdict(dict)
+    for numeric, test_results in sorted(results.items()):
+        percentile_values = [
+            float(value)
+            for value in numpy.percentile(
+                [get_value(result) for result in test_results.values()],
+                PERCENTILE_POINTS,
+                method="linear",
             )
-        }
-        for metric in ("epsilon", "delta")
+        ]
+
+        for percentile_point, percentile_value in zip(PERCENTILE_POINTS, percentile_values):
+            result[f"p{percentile_point}"][numeric] = percentile_value
+    return result
+
+
+def _epsilon_delta_percentiles(
+    results: AccuracyBenchmarkOutput,
+    get_value: tp.Callable[[Error], float],
+) -> dict[str, Lines]:
+    return {
+        EPSILON: _percentiles(results, lambda eps_delta_err: get_value(eps_delta_err.epsilon)),
+        DELTA: _percentiles(results, lambda eps_delta_err: get_value(eps_delta_err.delta)),
     }
+
+
+def _absolute_error(err: Error) -> float:
+    return abs(err.actual - err.baseline)
+
+
+def _relative_error(err: Error) -> float:
+    if err.baseline == 0:
+        return _absolute_error(err)
+    return _absolute_error(err) / err.baseline
+
+
+def absolute_error_percentiles(results: AccuracyBenchmarkOutput) -> dict[str, Lines]:
+    return _epsilon_delta_percentiles(results, _absolute_error)
+
+
+def relative_error_percentiles(results: AccuracyBenchmarkOutput) -> dict[str, Lines]:
+    return _epsilon_delta_percentiles(results, _relative_error)

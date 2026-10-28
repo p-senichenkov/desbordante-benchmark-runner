@@ -76,9 +76,10 @@ def accuracy(desbordante_root: Path, numeric: list[int], output: Path) -> None:
 @cli.command()
 @click.option("-i", "--input", type=INPUT_PATH, required=True)
 @click.option("-o", "--output", type=OUTPUT_PATH)
-def accuracy_plot(input: Path, output: Path | None) -> None:
-    report = AccuracyReport.load(input.read_text(encoding="utf-8"))
-    build_accuracy_plots(report, output)
+@click.option("-l", "--log-x", is_flag=True, help="Use logarithmic scale on axis X")
+def accuracy_plot(input: Path, output: Path | None, log_x: bool) -> None:
+    report = AccuracyReport.model_validate_json(input.read_text(encoding="utf-8"))
+    build_accuracy_plots(report, output, log_x)
 
 
 if __name__ == "__main__":

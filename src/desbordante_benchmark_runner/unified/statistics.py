@@ -8,7 +8,6 @@ import json
 from scipy import stats
 import numpy
 
-from ..statistics import AxisMeta
 from ..algo import EPacAlgo
 
 
@@ -20,6 +19,12 @@ def _system_info() -> dict[str, tp.Any]:
         ),
         "uname": platform.uname()._asdict(),
     }
+
+
+@dataclass(frozen=True)
+class AxisMeta:
+    name: str
+    unit: str
 
 
 @dataclass(frozen=True)

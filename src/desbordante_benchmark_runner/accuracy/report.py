@@ -2,23 +2,16 @@ import json
 
 from pydantic import BaseModel, RootModel, TypeAdapter
 
-from ..statistics import AxisMeta
 from .benchmark_output import AccuracyBenchmarkOutput
-from .statistics import aggregate_results, error_percentiles
-
+from .statistics import Lines, absolute_error_percentiles, relative_error_percentiles
 
 NUMERIC_PARAMETER_NAME = "Histogram bucket count multiplier"
 
 
-class PlotMeta(BaseModel):
-    name: str
-    axis_x: AxisMeta
-    axis_y: AxisMeta
-
-
 class PlotValues(BaseModel):
-    meta: PlotMeta
-    values: dict[str, dict[int, float]]
+    axis_x: str
+    axis_y: str
+    values: Lines
 
 
 class PlotPage(BaseModel):
@@ -26,28 +19,17 @@ class PlotPage(BaseModel):
     plots: list[PlotValues]
 
 
-class AccuracyReport(RootModel[dict[str, list[PlotPage]]]):
-    @staticmethod
-    def load(st: str) -> "AccuracyReport":
-        report = json.loads(st)
-        if isinstance(report.get("benchmarks"), dict):
-            return process_results(
-                TypeAdapter(AccuracyBenchmarkOutput).validate_python(report["benchmarks"]),
-                parameter_name=report.get("parameter_name", NUMERIC_PARAMETER_NAME ),
-                baseline_algorithm=report.get("baseline_algorithm", "UCCPACVerifier"),
-                tested_algorithm=report.get("tested_algorithm", "HistogramUCCPACVerifier"),
+def _make_page(name: str, parameter_name: str, stats: dict[str, Lines]) -> PlotPage:
+    return PlotPage(
+        name=name,
+        plots=[
+            PlotValues(
+                axis_x=parameter_name,
+                axis_y=metric.capitalize(),
+                values=values,
             )
-        return AccuracyReport.model_validate(report)
-
-
-def _make_plot(name: str, parameter_name: str, values: dict[str, dict[int, float]]) -> PlotValues:
-    return PlotValues(
-        meta=PlotMeta(
-            name=name,
-            axis_x=AxisMeta(name=parameter_name, unit=""),
-            axis_y=AxisMeta(name=name, unit=""),
-        ),
-        values=values,
+            for metric, values in stats.items()
+        ]
     )
 
 
@@ -57,35 +39,18 @@ def process_results(
     parameter_name: str = NUMERIC_PARAMETER_NAME ,
     baseline_algorithm: str = "UCCPACVerifier",
     tested_algorithm: str = "HistogramUCCPACVerifier",
-) -> AccuracyReport:
-    percentiles = aggregate_results(results, error_percentiles)
+) -> "AccuracyReport":
     numerics = sorted(results)
     test_names = sorted(results[numerics[0]])
 
-    percentile_page = PlotPage(
-        name="Absolute error",
-        plots=[
-            _make_plot(
-                f"Absolute {metric} error",
-                parameter_name,
-                {
-                    percentile: {
-                        numeric: percentiles[numeric][metric][percentile] for numeric in numerics
-                    }
-                    for percentile in ("p50", "p90", "p100")
-                },
-            )
-            for metric in ("epsilon", "delta")
-        ],
-    )
     benchmarks = [
         PlotPage(
             name=test_name,
             plots=[
-                _make_plot(
-                    metric.capitalize(),
-                    parameter_name,
-                    {
+                PlotValues(
+                    axis_x=parameter_name,
+                    axis_y=metric.capitalize(),
+                    values={
                         label: {
                             numeric: getattr(getattr(results[numeric][test_name], metric), field)
                             for numeric in numerics
@@ -101,4 +66,18 @@ def process_results(
         )
         for test_name in test_names
     ]
-    return AccuracyReport({"aggregates": [percentile_page], "benchmarks": benchmarks})
+
+    abs_err_percentiles = absolute_error_percentiles(results)
+    rel_err_percentiles = relative_error_percentiles(results)
+
+    abs_err_percentile_page = _make_page("Absolute error", parameter_name, abs_err_percentiles)
+    rel_err_percentile_page = _make_page("Relative error", parameter_name, rel_err_percentiles)
+
+    return AccuracyReport({
+        "aggregates": [abs_err_percentile_page, rel_err_percentile_page],
+        "benchmarks": benchmarks,
+    })
+
+
+class AccuracyReport(RootModel[dict[str, list[PlotPage]]]):
+    pass

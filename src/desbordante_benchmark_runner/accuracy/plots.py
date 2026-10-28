@@ -12,12 +12,8 @@ from matplotlib.widgets import Button
 from .report import AccuracyReport, PlotPage
 
 
-def _axis_label(name: str, unit: str) -> str:
-    return f"{name}, {unit}" if unit else name
-
-
 def _draw_page(
-    fig: Figure, section: str, page: PlotPage, *, interactive: bool = False
+    fig: Figure, section: str, page: PlotPage, log_x: bool, *, interactive: bool = False
 ) -> list[Axes]:
     assert page.plots
     axes = list(fig.subplots(1, len(page.plots), squeeze=False)[0])
@@ -41,10 +37,10 @@ def _draw_page(
                 markerfacecolor="none", label=line_name,
             )[0]
             handles.setdefault(line_name, line)
-        meta = plot.meta
-        ax.set_title(meta.name, fontsize=12)
-        ax.set_xlabel(_axis_label(meta.axis_x.name, meta.axis_x.unit), fontsize=11)
-        ax.set_ylabel(_axis_label(meta.axis_y.name, meta.axis_y.unit), fontsize=11)
+        if log_x:
+            ax.set_xscale("log")
+        ax.set_xlabel(plot.axis_x, fontsize=11)
+        ax.set_ylabel(plot.axis_y, fontsize=11)
         ax.tick_params(labelsize=10)
         ax.ticklabel_format(axis="y", style="plain", useOffset=False)
         xs = sorted({x for points in plot.values.values() for x in points})
@@ -67,13 +63,13 @@ def _draw_page(
     return axes
 
 
-def _build_page_plot(section: str, page: PlotPage) -> Figure:
+def _build_page_plot(section: str, page: PlotPage, log_x: bool) -> Figure:
     fig = plt.figure(figsize=(max(12, 6 * len(page.plots)), 5), layout="constrained")
-    _draw_page(fig, section, page)
+    _draw_page(fig, section, page, log_x)
     return fig
 
 
-def _show_pages(pages: list[tuple[str, PlotPage]]) -> None:
+def _show_pages(pages: list[tuple[str, PlotPage]], log_x: bool) -> None:
     fig = plt.figure(figsize=(12, 6), layout="none")
     axes: list[Axes] = []
     previous = Button(fig.add_axes((0.25, 0.025, 0.15, 0.06)), "Previous")
@@ -90,7 +86,7 @@ def _show_pages(pages: list[tuple[str, PlotPage]]) -> None:
             legend.remove()
         section, page = pages[current_page]
         fig.set_size_inches(max(12, 6 * len(page.plots)), 6)
-        axes = _draw_page(fig, section, page, interactive=True)
+        axes = _draw_page(fig, section, page, log_x, interactive=True)
         page_label.set_text(f"{current_page + 1} / {len(pages)}")
         previous.set_active(current_page > 0)
         next_page.set_active(current_page < len(pages) - 1)
@@ -117,17 +113,17 @@ def _show_pages(pages: list[tuple[str, PlotPage]]) -> None:
     plt.show()
 
 
-def build_plots(report: AccuracyReport, output: Path | None) -> None:
+def build_plots(report: AccuracyReport, output: Path | None, log_x: bool) -> None:
     pages = [(section, page) for section, entries in report.root.items() for page in entries]
     assert pages
 
     if not output:
-        _show_pages(pages)
+        _show_pages(pages, log_x)
         return
 
     output.parent.mkdir(parents=True, exist_ok=True)
     with PdfPages(output) as pdf:
         for index, (section, page) in enumerate(pages, start=1):
-            fig = _build_page_plot(section, page)
+            fig = _build_page_plot(section, page, log_x)
             pdf.savefig(fig)
             plt.close(fig)
