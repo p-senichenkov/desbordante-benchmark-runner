@@ -100,3 +100,18 @@ def build_desbordante(
     build_target = desbordante_root / "build" / "target"
     assert build_target.exists()
     return build_target
+
+
+def check_dict_match[K, V, Res](dct: dict[K, V], trans: tp.Callable[[V], Res], msg: str) -> None:
+    if not dct:
+        raise ValueError("Dict is empty")
+    sample: Res | None
+    for key, value in dct.items():
+        if sample is None:
+            sample = trans(value)
+        else:
+            if sample != trans(value):
+                raise ValueError(f"{msg} mismatch[{key}]: {sample} vs {trans(value)}")
+
+def check_same_keys[K1, K2, V](dct: dict[K1, dict[K2, V]]) -> None:
+    check_dict_match(dct, lambda kv: kv.keys(), "Keys")

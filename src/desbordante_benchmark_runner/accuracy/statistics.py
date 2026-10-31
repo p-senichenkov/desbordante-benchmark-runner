@@ -1,26 +1,22 @@
 import typing as tp
 import json
 from collections import defaultdict
+from dataclasses import dataclass
 
 import numpy
 
-from ..util import EPSILON, DELTA
-
-from .benchmark_output import AccuracyBenchmarkOutput, TestResults, Error, EpsilonDeltaError
-
-
-type LinePoints = dict[int, float]
-type Lines = dict[str, LinePoints]
+from .benchmark_output import TestResults, Error, EpsilonDeltaError
+from .plot_data import PlotData
 
 
 def _percentiles(
-    results: AccuracyBenchmarkOutput,
+    sorted_results: list[TestResults],
     get_value: tp.Callable[[EpsilonDeltaError], float],
-) -> Lines:
+) -> PlotData:
     PERCENTILE_POINTS = (50, 90, 100)
 
-    result: Lines = defaultdict(dict)
-    for numeric, test_results in sorted(results.items()):
+    result: PlotData = []
+    for test_results in sorted_results:
         percentile_values = [
             float(value)
             for value in numpy.percentile(
@@ -30,19 +26,27 @@ def _percentiles(
             )
         ]
 
-        for percentile_point, percentile_value in zip(PERCENTILE_POINTS, percentile_values):
-            result[f"p{percentile_point}"][numeric] = percentile_value
+        result.append({
+            f"{percentile_point}": percentile_value
+            for percentile_point, percentile_value in zip(PERCENTILE_POINTS, percentile_values)
+        })
     return result
 
 
+@dataclass
+class EpsilonDeltaPlotData:
+    epsilon: PlotData
+    delta: PlotData
+
+
 def _epsilon_delta_percentiles(
-    results: AccuracyBenchmarkOutput,
+    sorted_results: list[TestResults],
     get_value: tp.Callable[[Error], float],
-) -> dict[str, Lines]:
-    return {
-        EPSILON: _percentiles(results, lambda eps_delta_err: get_value(eps_delta_err.epsilon)),
-        DELTA: _percentiles(results, lambda eps_delta_err: get_value(eps_delta_err.delta)),
-    }
+) -> EpsilonDeltaPlotData:
+    return EpsilonDeltaPlotData(
+        epsilon=_percentiles(sorted_results, lambda eps_delta_err: get_value(eps_delta_err.epsilon)),
+        delta=_percentiles(sorted_results, lambda eps_delta_err: get_value(eps_delta_err.delta)),
+    )
 
 
 def _absolute_error(err: Error) -> float:
@@ -55,9 +59,9 @@ def _relative_error(err: Error) -> float:
     return _absolute_error(err) / err.baseline
 
 
-def absolute_error_percentiles(results: AccuracyBenchmarkOutput) -> dict[str, Lines]:
-    return _epsilon_delta_percentiles(results, _absolute_error)
+def absolute_error_percentiles(sorted_results: list[TestResults]) -> EpsilonDeltaPlotData:
+    return _epsilon_delta_percentiles(sorted_results, _absolute_error)
 
 
-def relative_error_percentiles(results: AccuracyBenchmarkOutput) -> dict[str, Lines]:
-    return _epsilon_delta_percentiles(results, _relative_error)
+def relative_error_percentiles(sorted_results: list[TestResults]) -> EpsilonDeltaPlotData:
+    return _epsilon_delta_percentiles(sorted_results, _relative_error)

@@ -12,9 +12,7 @@ from .unified.statistics import PlotStats
 from .unified.runner import write_report
 from .unified.benchmarks import run_unified_iowas_low_arities
 
-from .accuracy.plots import build_plots as build_accuracy_plots
-from .accuracy.report import NUMERIC_PARAMETER_NAME , AccuracyReport
-from .accuracy.runner import run_accuracy_benchmarks
+from .accuracy.runner import run_accuracy_benchmarks, build_accuracy_plots
 
 
 class ESuite(StrEnum):
@@ -57,20 +55,15 @@ def unified(desbordante_root: Path, test_suite: ESuite, algorithm: EPacAlgo, out
 @click.option("-i", "--input", type=INPUT_PATH, required=True)
 @click.option("-o", "--output", type=OUTPUT_PATH)
 def plot(input: Path, output: Path | None) -> None:
-    """Build matplotlib plots from a report produced by unified."""
-
     build_unified_plots(PlotStats.load(input.read_text(encoding="utf-8")), output)
 
 
 @cli.command()
 @click.option("-d", "--desbordante-root", type=DESBORDANTE_ROOT_TYPE, default=DEFAULT_DESBORDANTE_ROOT)
-@click.option("-n", "--numeric", type=POSITIVE_INT, multiple=True, required=True, help=f"{NUMERIC_PARAMETER_NAME }; specify once per value.")
+@click.option("-n", "--numeric", type=POSITIVE_INT, multiple=True, required=True)
 @click.option("-o", "--output", type=OUTPUT_PATH, required=True)
 def accuracy(desbordante_root: Path, numeric: list[int], output: Path) -> None:
-    check_desbordante_root(desbordante_root)
-    report = run_accuracy_benchmarks(desbordante_root, list(numeric))
-    output.parent.mkdir(exist_ok=True, parents=True)
-    output.write_text(report.model_dump_json(indent=2), encoding="utf-8")
+    run_accuracy_benchmarks(desbordante_root, numeric, output)
 
 
 @cli.command()
@@ -78,8 +71,7 @@ def accuracy(desbordante_root: Path, numeric: list[int], output: Path) -> None:
 @click.option("-o", "--output", type=OUTPUT_PATH)
 @click.option("-l", "--log-x", is_flag=True, help="Use logarithmic scale on axis X")
 def accuracy_plot(input: Path, output: Path | None, log_x: bool) -> None:
-    report = AccuracyReport.model_validate_json(input.read_text(encoding="utf-8"))
-    build_accuracy_plots(report, output, log_x)
+    build_accuracy_plots(input, output, log_x)
 
 
 if __name__ == "__main__":
